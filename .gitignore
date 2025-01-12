@@ -1,3 +1,4 @@
 src/Cholec80/data/
 my_file.zip
 checkpoints/
+/home/santhi/Documents/DACAT/src/Cholec80/output/checkpoints/phase/20250112-0858_Step1_cuhk4040Split_lstm_convnextv2_lr0.0001_bs1_seq256_frozen/models
