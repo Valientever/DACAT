@@ -15,8 +15,11 @@ opts = parser.parse_args()
 # assumes <opts.resume> has form "output/checkpoints/<task>/<trial_name>/models/<checkpoint>.pth.tar"
 suffix = 'predv2_DACAT'
 
-out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints/','/predictions/')
+# out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints/','/predictions/')
+out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/predictions/')
+
 print(f'opts.resume: {opts.resume} \n out_folder: {out_folder}')
+
 gt_folder = os.path.join(out_folder,'gt')
 print(f'gt_folder: {gt_folder}')
 pred_folder = os.path.join(out_folder,suffix)

@@ -8,6 +8,14 @@ import torch
 from torch.utils.data import Dataset, ConcatDataset, DataLoader
 import util_train as util
 
+def add_gaussian_noise(image):
+    row, col, ch = image.shape
+    mean = 0
+    sigma = 25
+    gauss = np.random.normal(mean, sigma, (row, col, ch)).astype('uint8')
+    noisy = cv2.add(image, gauss)
+    return noisy
+
 def prepare_dataset(opts):
 
 	data_aug = not opts.no_data_aug
@@ -51,14 +59,6 @@ def prepare_dataset(opts):
 		#print('test')
 		test_set  = load_data(op_paths[40:80],opts,data_aug=False,shuffle=False)
 	elif opts.split=='cuhknotest':
-		op_paths.sort(key=os.path.basename)
-		#print('train')
-		train_set = load_data(op_paths[00:32],opts,data_aug=data_aug,shuffle=opts.shuffle)
-		#print('val')
-		val_set   = load_data(op_paths[32:40],opts,data_aug=False,shuffle=False)
-		#print('test')
-		test_set  = load_data(op_paths[42:43],opts,data_aug=False,shuffle=False)
-	elif opts.split=='cuhk4040':
 		op_paths.sort(key=os.path.basename)
 		#print('train')
 		train_set = load_data(op_paths[00:40],opts,data_aug=data_aug,shuffle=opts.shuffle)
@@ -154,46 +154,20 @@ def prepare_batch(data,target):
 
 	return data, target
 
-class Cholec80(Dataset):
-	def __init__(self, image_path, ID, opts, data_aug=False, seq_len=1):
+class Cholec80Test():
+	def __init__(self, image_path, ID, opts, seq_len=None):
 		
 		#print(ID)
 		self.image_path = image_path
-		self.seq_len = seq_len
+		self.seq_len = opts.seq_len if seq_len is None else seq_len
+		self.ext = 'jpg'
+		self.dynamic_infer = seq_len is not None
 
-		if opts.location == 'cluster':
-			self.ext = 'png'
-		else:
-			self.ext = 'jpg'
-
-		if data_aug:
-			self.transform = A.Compose([
-				A.SmallestMaxSize(max_size=opts.height+40),
-				A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5),
-				A.RandomCrop(height=opts.height, width=opts.width),
-				A.RGBShift(r_shift_limit=15, g_shift_limit=15, b_shift_limit=15, p=0.5),
-				A.RandomBrightnessContrast(p=0.5),
-				A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-				ToTensorV2(),
-			])
-		else:
-			self.transform = A.Compose([
-				A.SmallestMaxSize(max_size=opts.height),
-				A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
-				ToTensorV2(),
-			])
-
-		### generate anticipation ground truth from tool presence
-		if opts.task == 'anticipation':
-			annotation_path = os.path.join(opts.annotation_folder,'tool_annotations',"video"+ID+"-tool.txt")
-			with open(annotation_path, "r") as f:
-				tool_presence = []
-				reader = csv.reader(f, delimiter='\t')
-				next(reader, None)
-				for i,row in enumerate(reader):
-					tool_presence.append([int(row[x]) for x in [2,4,5,6,7]])
-				tool_presence = torch.LongTensor(tool_presence).permute(1,0)
-			self.target = generate_anticipation_gt(tool_presence,opts.horizon)
+		self.transform = A.Compose([
+			A.SmallestMaxSize(max_size=opts.height),
+			A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+			ToTensorV2(),
+		])
 
 		# load phase ground truth
 		if opts.task == 'phase':
@@ -216,16 +190,30 @@ class Cholec80(Dataset):
 						self.target.append(phase_map[row[1]])
 			self.target = torch.LongTensor(self.target)
 
-	def __getitem__(self, index):
-		img_seq, target_seq = [], []
-
-		for k in range(self.seq_len):
-
-			img, target = self.load_frame(index + k)
-			img_seq.append(img)
-			target_seq.append(target)
+		self.idx = 0
+		self.imagebank = []
+		self.targetbank = []
+  
+	def __next__(self):
 		
-		img_seq, target_seq = torch.stack(img_seq), torch.stack(target_seq)
+		img, target = self.load_frame(self.idx)
+		# if self.idx == 0:
+		# 	self.imagebank = [img] * self.seq_len
+		# 	self.targetbank = [target] * self.seq_len
+		if not self.dynamic_infer:
+			if self.idx < self.seq_len:
+				self.imagebank.append(img)
+				self.targetbank.append(target)
+			else:
+				self.imagebank = self.imagebank[1:] + [img]
+				self.targetbank = self.targetbank[1:] + [target]
+			img_seq, target_seq = torch.stack(self.imagebank).unsqueeze(0), torch.stack(self.targetbank).unsqueeze(0)
+		
+		else:
+		
+			img_seq, target_seq = torch.stack([img]).unsqueeze(0), torch.stack([target]).unsqueeze(0)
+		self.idx += 1
+
 		return img_seq, target_seq
 
 	def load_frame(self,index):
@@ -239,28 +227,5 @@ class Cholec80(Dataset):
 		return img, target
 
 	def __len__(self):
-		return len(self.target) - self.seq_len + 1
+		return len(self.target)
 
-# generates the ground truth signal over time for a single tool and a single operation
-def generate_anticipation_gt_onetool(tool_code,horizon):
-	# initialize ground truth signal
-	anticipation = torch.zeros_like(tool_code).type(torch.FloatTensor)
-	# default ground truth value is <horizon> minutes
-	# (i.e. tool will not appear within next <horizon> minutes)
-	anticipation_count = horizon
-	# iterate through tool-presence signal backwards
-	for i in torch.arange(len(tool_code)-1,-1,-1):
-		# if tool is present, then set anticipation value to 0 minutes
-		if tool_code[i]:
-			anticipation_count = 0
-		# else increase anticipation value with each (reverse) time step but clip at <horizon> minutes
-		else:
-			anticipation_count = min(horizon, anticipation_count + 1/60) # video is sampled at 1fps, so 1 step = 1/60 minutes
-		anticipation[i] = anticipation_count
-	# normalize ground truth signal to values between 0 and 1
-	anticipation = anticipation / horizon
-	return anticipation
-
-# generates the ground truth signal over time for a single operation
-def generate_anticipation_gt(tools,horizon):
-	return torch.stack([generate_anticipation_gt_onetool(tool_code,horizon) for tool_code in tools]).permute(1,0)

@@ -1,1 +1,6 @@
 Cholec80_Dataset_Path: /home/santhi/Documents/data_cholec80
+
+
+/home/santhi/anaconda3/envs/dacat/lib/python3.10/site-packages/sklearn/metrics/_classification.py:2184: UserWarning: y_pred contains classes not in y_true
+  warnings.warn("y_pred contains classes not in y_true")
+Epoch 187: Train (loss 0.006, acc 0.998) Val (f1 0.992, ba 0.995, acc 0.993) Test (Frame scores: p 0.859, r 0.827, j 0.728, f1 0.836; Video scores: ba 0.838, acc 0.912) 

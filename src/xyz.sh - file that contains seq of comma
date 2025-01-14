@@ -1,0 +1,4 @@
+xyz.sh - file that contains seq of commands
+convert into executable - chmod +x xyz.sh
+./xyz.sh
+

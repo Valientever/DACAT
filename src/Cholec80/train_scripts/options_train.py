@@ -79,3 +79,7 @@ parser_phase.add_argument('--cheat', action='store_true')
 parser_phase.add_argument('--freeze',action='store_true',help='freezes bottom 3 blocks of ResNet-50, ResNet-50-GN or ConvNeXt.')
 parser_phase.add_argument('--sliding_window',action='store_true')
 parser_phase.add_argument('--random_seed',action='store_true')
+
+# NEW: Add --corrupt argument for phase
+parser_phase.add_argument('--corrupt', type=int, default=-1,
+    help="Corruption mode. 0..6 => single, -1 => run all corruptions")
