@@ -16,7 +16,11 @@ opts = parser.parse_args()
 suffix = 'predv2_DACAT'
 
 # out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints/','/predictions/')
-out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/predictions/')
+# out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/Noise/predictions_noise_15_3/')
+# out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/Defocus_blur/defocus_blur_5_5_3/')
+# out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/Motion_blur/motion_blur_10_3/')
+# out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/Uneve_ill/uneven_ill_5_5_5/')
+out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/diff_pred/diff_pred_1/')
 
 print(f'opts.resume: {opts.resume} \n out_folder: {out_folder}')
 

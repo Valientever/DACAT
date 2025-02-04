@@ -7,6 +7,46 @@ import csv
 import torch
 from torch.utils.data import Dataset, ConcatDataset, DataLoader
 import util_train as util
+import random
+from ipdb import set_trace
+
+
+def add_gaussian_noise(image):
+    row, col, ch = image.shape
+    mean = 0
+    sigma =25#15#25
+    gauss = np.random.normal(mean, sigma, (row, col, ch)).astype('uint8')
+    noisy = cv2.add(image, gauss)
+    return noisy
+
+#Defocus blur
+def defocus_blur(image):
+	return cv2.GaussianBlur(image, (15,15),5) #increase kernal size or sigma for more blur
+
+#Motion blur
+def motion_blur(image):
+	size = 25  #kernal size, increase for more blur
+	kernel_motion_blur = np.zeros((size, size))
+	kernel_motion_blur[int((size-1)/2), :] = np.ones(size)
+	kernel_motion_blur /= size
+	return cv2.filter2D(image, -1, kernel_motion_blur)
+
+#Uneven illumination
+def uneven_illumination(image):
+	rows, cols, _ = image.shape
+	gradient = np.linspace(1, 0.6,cols, dtype=np.float32) #1 is lt side, 0.6 is rt side, as the number increase 
+															# it is more bright. 0.6 is less bright than 1
+	mask = np.tile(gradient, (rows, 1))
+	for c in range(3):
+		image[:, :, c] = image[:, :, c].astype(np.float32) * mask
+	image = np.clip(image, 0, 255).astype(np.uint8)
+	return image
+
+#Smoke
+def smoke(image):
+	overlay = image.copy()
+	alpha = 0.5
+	return cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
 
 def prepare_dataset(opts):
 
@@ -209,10 +249,24 @@ class Cholec80Test():
 		return img_seq, target_seq
 
 	def load_frame(self,index):
+		# set_trace()
 		target = self.target[index]
 
 		file_name = os.path.join(self.image_path,'{:08d}.{}'.format(index,self.ext))
 		img = cv2.imread(file_name)
+		if index%3==0:
+		#adding noise
+		# if random.random( ) < 0.5:
+			img = add_gaussian_noise(img)
+		if index % 7 == 0 and index % 3 != 0:
+			img = defocus_blur(img)
+		if index % 11 == 0 and (index % 3 != 0 or index % 7 != 0):
+			img = motion_blur(img)
+		if index % 13 == 0 and (index % 3 != 0 or index % 7 != 0 or index % 11 != 0):
+			img = uneven_illumination(img)
+			# img = smoke(img)
+		# else:
+		# 	img = img
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 		img = self.transform(image=img)['image']
 

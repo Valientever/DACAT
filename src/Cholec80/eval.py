@@ -186,7 +186,12 @@ def main():
 
     # Root directory
     # maindir = r"D:/MATLAB/PhaseReg/20240704_convnext2"
-    maindir = r"/home/santhi/Documents/DACAT/checkpoints"
+    # maindir = r"/home/santhi/Documents/DACAT/checkpoints"
+    # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/Noise/predictions_noise_15_3/"
+    # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/Defocus_blur/defocus_blur_5_5_3/"
+    # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/Motion_blur/motion_blur_10_3/"
+    # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/Uneve_ill/uneven_ill_5_5_5/"
+    maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/diff_pred/diff_pred_1/"
 
     # Gather ground-truth text file paths
     # For example, we pick from 41..80
