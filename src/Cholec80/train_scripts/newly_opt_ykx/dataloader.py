@@ -109,7 +109,7 @@ def load_data(op_paths,opts,data_aug,shuffle):
 		for op_path in op_paths:
 			ID = os.path.basename(op_path)
 			if os.path.isdir(op_path):
-				dataset = Cholec80(op_path, ID, opts, data_aug, opts.seq_len)
+				dataset = Cholec80Test(op_path, ID, opts, data_aug, opts.seq_len)
 				data.append(dataset)
 		data = ConcatDataset(data)
 		data = DataLoader(data, batch_size=opts.batch_size, shuffle=True, num_workers=opts.workers)
@@ -122,7 +122,7 @@ def load_data(op_paths,opts,data_aug,shuffle):
 			ID = os.path.basename(op_path)
 			if os.path.isdir(op_path):
 				#print(ID)
-				dataset = Cholec80(op_path, ID, opts, data_aug, seq_len=1)
+				dataset = Cholec80Test(op_path, ID, opts, data_aug, seq_len=1)
 				dataloader = DataLoader(dataset, batch_size=opts.batch_size*opts.seq_len, shuffle=False, num_workers=opts.workers, collate_fn=collate_noshuffle)
 				data.append((ID,dataloader))
 

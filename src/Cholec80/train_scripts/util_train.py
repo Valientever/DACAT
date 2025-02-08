@@ -4,20 +4,20 @@ from shutil import copy2
 import torch
 import numpy as np
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, precision_score, recall_score, jaccard_score, f1_score
-
+from ipdb import set_trace
 def prepare_output_folders(opts):
 
 	if opts.image_based:
 		temp_head = 'imageBased'
-	else:
+	else: #......
 		temp_head = opts.head
-	if opts.freeze:
+	if opts.freeze: #......
 		depth = 'frozen'
 	else:
 		depth = 'e2e'
 	if opts.shuffle:
 		shuffle = '_shuffle'
-	else:
+	else:  #......
 		shuffle = ''
 
 	trial_name_full = '{}_{}_{}Split_{}_{}_lr{}_bs{}_seq{}_{}{}'.format(
@@ -34,6 +34,7 @@ def prepare_output_folders(opts):
 	)
 
 	if opts.only_temporal:
+		# set_trace()
 		trial_name_full = '{}_{}_{}Split_{}_{}_2step'.format(
 			datetime.datetime.now().strftime("%Y%m%d-%H%M"),
 			opts.trial_name,
@@ -41,8 +42,14 @@ def prepare_output_folders(opts):
 			temp_head,
 			opts.backbone
 		)
-
-	output_folder = os.path.join(opts.output_folder,trial_name_full)
+# '../results/checkpoint_1/current_cp/'
+	# set_trace()
+	#I want ot create a subfolder with the opts.exp_name
+	subfolder_folder = os.path.join(opts.output_folder,opts.experiment_name)
+	sub_subfolder = os.path.join(subfolder_folder, opts.step_2)
+	if not os.path.exists(sub_subfolder):
+		os.makedirs(sub_subfolder)
+	output_folder = os.path.join(sub_subfolder,trial_name_full)
 	print('Output directory: ' + output_folder)
 	result_folder = os.path.join(output_folder,'results')
 	script_folder = os.path.join(output_folder,'scripts')

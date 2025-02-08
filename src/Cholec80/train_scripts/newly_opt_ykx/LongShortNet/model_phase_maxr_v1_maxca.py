@@ -5,7 +5,7 @@ from copy import deepcopy
 from .CrossAttentionModel import CrossAttention
 import util_train as util
 import os
-
+from ipdb import set_trace
 class Identity(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -175,8 +175,19 @@ class PhaseModel(nn.Module):
                                cache_size=None if train else opts.seq_len, train=train).cuda()
 
 		print('loaded ImageNet weights...')
-		
-		long_net_pretrain_path = os.path.join(os.path.dirname(__file__), 'long_net_convnextv2.pth.tar')
+		# set_trace()
+		#I want this to access the path to the results and then join the exp_name 
+		input_file = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, opts.step_1)
+		subdirs = [os.path.join(input_file, d) for d in os.listdir(input_file)]
+		if subdirs:
+			latest_subdir = max(subdirs, key=os.path.getmtime)
+		else:
+			raise ValueError('No subdirectories found in the results folder')
+
+
+		long_net_pretrain_path = os.path.join(latest_subdir,'models') #os.path.dirname(__file__)
+		long_net_pretrain_path = os.path.join(long_net_pretrain_path,'checkpoint_best_acc.pth.tar')
+		print(f"long_net_pretrain_path: {long_net_pretrain_path}")
 		self.net_long.load_state_dict(torch.load(long_net_pretrain_path)['state_dict'])
   
 		if opts.resume is not None:
@@ -293,6 +304,8 @@ class PhaseModel(nn.Module):
 			if self.opts.image_based:
 				model_file_path = os.path.join(self.model_folder,'checkpoint_{:03d}.pth.tar'.format(epoch))
 			else:
+				print('this line is being called : model_phase_maxr line 307 saving current model...')
+				# set_trace()
 				model_file_path = os.path.join(self.model_folder,'checkpoint_current.pth.tar')
 			torch.save(checkpoint, model_file_path)
 

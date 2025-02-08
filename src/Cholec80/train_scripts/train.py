@@ -20,7 +20,8 @@ if opts.task == 'phase':
 
 if opts.only_temporal:
 	train_set, val_set, test_set = prepare_image_features(model.net,opts)
-else:
+else:  #.....
+	print(f'train.py is calling this funtion: prepare_dataset- line 24')
 	train_set, val_set, test_set = prepare_dataset(opts)
 
 

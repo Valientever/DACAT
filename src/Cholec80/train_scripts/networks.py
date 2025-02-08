@@ -62,6 +62,7 @@ class LSTMHead(nn.Module):
 		self.prev_feat = None
 
 	def forward(self,x):
+		# print(f"this is being called: networks.py ---> LSTMHead- line 65")
 
 		x, hidden_state = self.lstm(x,self.hidden_state)
 		x = self.out_layer(x)

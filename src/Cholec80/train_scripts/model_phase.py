@@ -1,10 +1,12 @@
 import torch
+import os
 from torch import nn, optim
 #from nfnets import AGC
 from nfnets_optim import SGD_AGC
 from networks import CNN, TemporalCNN
 import util_train as util
 import os
+from ipdb import set_trace
 
 class PhaseModel(nn.Module):
 
@@ -17,7 +19,8 @@ class PhaseModel(nn.Module):
 			self.net = CNN(opts.num_classes,opts.backbone,opts).cuda()
 			for param in self.net.parameters():
 				param.requires_grad = True
-		else:
+		else:  #............
+			print(f'This is being called: PhaseModel- line 22')
 			self.net = TemporalCNN(opts.num_classes,opts.backbone,opts.head,opts).cuda()
 		#print(self.net)
 
@@ -71,7 +74,8 @@ class PhaseModel(nn.Module):
 			else:
 				self.optimizer = optim.AdamW(self.net.parameters(), lr=opts.lr, weight_decay=opts.weight_decay)
 			if opts.resume is not None:
-				self.optimizer.load_state_dict(checkpoint['optimizer'])
+				self.optimizer.load_state_dict(checkpoint
+								   ['optimizer'])
 				print('loaded optimizer settings...')
 			# doesn't seem to work:
 			#if opts.backbone == 'nfnet':
@@ -153,14 +157,35 @@ class PhaseModel(nn.Module):
 			}
 			if self.opts.image_based:
 				model_file_path = os.path.join(self.model_folder,'checkpoint_{:03d}.pth.tar'.format(epoch))
-			else:
+			else:  #........
+				print(f'This is being called- model_phase.py- line 160')
+				# set_trace()
+				#'../results/checkpoint_1/current_cp/20250205-2027_Step1_cuhk4040Split_lstm_convnextv2_lr0.0001_bs1_seq256_frozen/models'
 				model_file_path = os.path.join(self.model_folder,'checkpoint_current.pth.tar')
-			torch.save(checkpoint, model_file_path)
+			# torch.save(checkpoint, model_file_path)
+				# existing_ckpt = os.path.join(self.model_folder, 'checkpoint_current.pth.tar')
+				# #os.path.join(*self.model_folder.split(os.sep)[:4])
+				# # 1) If there's an existing checkpoint, move it to previous_cp
+				# if os.path.exists(existing_ckpt):
+				# 	previous_cp_folder = os.path.join(os.path.dirname(self.model_folder), 'previous_cp')
+				# 	os.makedirs(previous_cp_folder, exist_ok = True)
+				# 	# Rename or move existing checkpoint into previous_cp, adding epoch to filename
+				# 	os.rename(
+				# 		existing_ckpt,
+				# 		os.path.join(previous_cp_folder, f'checkpoint_epoch_{epoch}.pth.tar')
+				# 	)
+
+				# # 2) Now save the *new* current checkpoint
+				# model_file_path = os.path.join(self.model_folder, 'checkpoint_current.pth.tar')
+				torch.save(checkpoint, model_file_path)
+
 
 			if f1_val > self.best_f1:
 				model_file_path = os.path.join(self.model_folder,'checkpoint_best_f1.pth.tar')
 				torch.save(checkpoint, model_file_path)
 				self.best_f1 = f1_val
+			
+
 
 			if acc_val > self.best_acc:
 				model_file_path = os.path.join(self.model_folder,'checkpoint_best_acc.pth.tar')

@@ -16,8 +16,13 @@ parser_anticipation.add_argument('--workers', type=int, default=2)
 parser_anticipation.add_argument('--location', type=str, default='suppl_code')
 parser_anticipation.add_argument('--annotation_folder', type=str, default='../data/')
 parser_anticipation.add_argument('--num_train_sets', type=int, default=3)
-parser_anticipation.add_argument('--output_folder', type=str, default='../output/checkpoints/anticipation/')
+# parser_anticipation.add_argument('--output_folder', type=str, default='../output/checkpoints/anticipation/')
+parser_anticipation.add_argument('--output_folder', type=str, default='../results/')
+parser_anticipation.add_argument('--step_1', type=str, default='phase')
+parser_anticipation.add_argument('--step_2', type=str, default='anticipation')
+
 parser_anticipation.add_argument('--trial_name', type=str, default='trial')
+parser_anticipation.add_argument('--experiment_name', type=str, default='trial')
 # model
 parser_anticipation.add_argument("--backbone", type=str, default='resnet50_gn', help="Type of model. Options: 'alexnet', 'resnet18', 'resnet50', 'convnext', 'nfnet', ...")
 parser_anticipation.add_argument("--head", type=str, default='lstm', help="Temporal head. Options: 'lstm' and 'tcn'")
@@ -43,6 +48,7 @@ parser_anticipation.add_argument('--freeze',action='store_true',help='freezes bo
 parser_anticipation.add_argument('--sliding_window',action='store_true')
 parser_anticipation.add_argument('--random_seed',action='store_true')
 
+
 #-----------#
 #-- PHASE --#
 #-----------#
@@ -54,14 +60,20 @@ parser_phase.add_argument('--workers', type=int, default=2)
 parser_phase.add_argument('--location', type=str, default='suppl_code')
 parser_phase.add_argument('--annotation_folder', type=str, default='../data/')
 parser_phase.add_argument('--num_train_sets', type=int, default=3)
-parser_phase.add_argument('--output_folder', type=str, default='../output/checkpoints/phase/')
+# parser_phase.add_argument('--output_folder', type=str, default='../output/checkpoints/phase/')
+parser_phase.add_argument('--output_folder', type=str, default='../results/')
+parser_phase.add_argument('--step_1', type=str, default='phase')
+parser_phase.add_argument('--step_2', type=str, default='anticipation')
 parser_phase.add_argument('--trial_name', type=str, default='trial')
+
+parser_phase.add_argument('--experiment_name', type=str, default='trial')
+
 # model
 parser_phase.add_argument("--backbone", type=str, default='resnet50_gn', help="Type of model. Options: 'alexnet', 'resnet50', 'resnet50_gn', 'convnext', nfnet', ...")
 parser_phase.add_argument("--head", type=str, default='lstm', help="Temporal head. Options: 'lstm' and 'tcn'")
 parser_phase.add_argument('--num_classes', type=int, default=7)
 # training
-parser_phase.add_argument('--epochs', type=int, default=200)
+parser_phase.add_argument('--epochs', type=int, default=200) #200
 parser_phase.add_argument('--split', type=str, default='tecno', help='"tecno (40/8/32)", "cuhk (32/8/40)" or "old (60/0/20 shuffled)"')
 parser_phase.add_argument('--batch_size', type=int, default=1)
 parser_phase.add_argument('--seq_len', type=int, default=64)

@@ -6,6 +6,7 @@ from networks import CNN, TemporalCNN
 import util_train as util
 import os
 import numpy as np
+from ipdb import set_trace
 
 class AnticipationModel:
 
@@ -48,6 +49,7 @@ class AnticipationModel:
 		}
 
 		if self.train:
+			# set_trace()
 			self.result_folder, self.model_folder, self.log_path = util.prepare_output_folders(opts)
 			self.best_MAE = 99999
 			self.best_wMAE = 99999

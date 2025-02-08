@@ -4,7 +4,7 @@ from shutil import copy2
 import torch
 import numpy as np
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, precision_score, recall_score, jaccard_score, f1_score
-
+from ipdb import set_trace
 def prepare_output_folders(opts):
 
 	if opts.image_based:
@@ -41,7 +41,11 @@ def prepare_output_folders(opts):
 			temp_head,
 			opts.backbone
 		)
-
+	print('this is being called: util_train.py line 44 ')
+	# set_trace()
+	subfolder_folder = os.path.join(opts.output_folder,opts.experiment_name, opts.step_2)
+	if not os.path.exists(subfolder_folder):
+		os.makedirs(subfolder_folder)
 	output_folder = os.path.join(opts.output_folder,trial_name_full)
 	print('Output directory: ' + output_folder)
 	result_folder = os.path.join(output_folder,'results')
