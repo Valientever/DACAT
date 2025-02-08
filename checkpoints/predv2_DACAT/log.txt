@@ -1,4 +1,0 @@
-Epoch  26: 
-Test (loss 0.000, acc frame 0.943
-      ba   0.902, f1   0.891
-      acc  0.943, prec 0.891, rec  0.892, jacc 0.811)
