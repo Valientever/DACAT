@@ -175,9 +175,10 @@ class PhaseModel(nn.Module):
                                cache_size=None if train else opts.seq_len, train=train).cuda()
 
 		print('loaded ImageNet weights...')
+
 		# set_trace()
 		#I want this to access the path to the results and then join the exp_name 
-		input_file = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, opts.step_1)
+		input_file = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, 'phase')
 		subdirs = [os.path.join(input_file, d) for d in os.listdir(input_file)]
 		if subdirs:
 			latest_subdir = max(subdirs, key=os.path.getmtime)
@@ -302,6 +303,7 @@ class PhaseModel(nn.Module):
 				}
 			}
 			if self.opts.image_based:
+				# set_trace()
 				model_file_path = os.path.join(self.model_folder,'checkpoint_{:03d}.pth.tar'.format(epoch))
 			else:
 				print('this line is being called : model_phase_maxr line 307 saving current model...')

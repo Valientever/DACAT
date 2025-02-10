@@ -12,6 +12,7 @@ class TemporalCNN(nn.Module):
 	def __init__(self,out_size,backbone,head,opts):
 
 		super(TemporalCNN, self).__init__()
+		print(f"this is being called: networks.py ---> TemporalCNN- line 15")
 
 		self.cnn = CNN(out_size,backbone,opts)
 		if head == 'lstm':
@@ -62,7 +63,7 @@ class LSTMHead(nn.Module):
 		self.prev_feat = None
 
 	def forward(self,x):
-		# print(f"this is being called: networks.py ---> LSTMHead- line 65")
+		print(f"this is being called: networks.py ---> LSTMHead- line 65")
 
 		x, hidden_state = self.lstm(x,self.hidden_state)
 		x = self.out_layer(x)

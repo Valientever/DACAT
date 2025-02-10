@@ -9,20 +9,24 @@ from newly_opt_ykx.LongShortNet.model_phase_maxr_v1_maxca import PhaseModel
 import util_train as util
 import os
 import pandas as pd
+from ipdb import set_trace
 
 opts = parser.parse_args()
 
 # assumes <opts.resume> has form "output/checkpoints/<task>/<trial_name>/models/<checkpoint>.pth.tar"
 suffix = 'predv2_DACAT'
-
+# set_trace()
+# /home/santhi/Documents/DACAT/checkpoints/Cholec80/checkpoint_best_acc.pth.tar
 # out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints/','/predictions/')
 # out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/Noise/predictions_noise_15_3/')
 # out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/Defocus_blur/defocus_blur_5_5_3/')
 # out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/Motion_blur/motion_blur_10_3/')
 # out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/Uneve_ill/uneven_ill_5_5_5/')
-out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/diff_pred/diff_pred_1/')
-
-print(f'opts.resume: {opts.resume} \n out_folder: {out_folder}')
+# out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/diff_pred/diff_pred_1/')
+#/home/santhi/Documents/DACAT/src/Cholec80/results/data_path/data/20250210-0946_DACAT_cuhk4040Split_lstm_convnextv2_lr1e-05_bs1_seq64_e2e/models/checkpoint_best_acc.pth.tar
+out_folder = os.path.join(opts.out_folder,opts.experiment_name)
+if not os.path.exists(out_folder):
+	os.makedirs(out_folder)
 
 gt_folder = os.path.join(out_folder,'gt')
 print(f'gt_folder: {gt_folder}')

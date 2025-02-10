@@ -46,10 +46,11 @@ def prepare_output_folders(opts):
 	# set_trace()
 	#I want ot create a subfolder with the opts.exp_name
 	subfolder_folder = os.path.join(opts.output_folder,opts.experiment_name)
-	sub_subfolder = os.path.join(subfolder_folder, opts.step_2)
+	sub_subfolder = os.path.join(subfolder_folder, opts.step_1)
 	if not os.path.exists(sub_subfolder):
 		os.makedirs(sub_subfolder)
 	output_folder = os.path.join(sub_subfolder,trial_name_full)
+	print('it is calling line 53 in utils_train.py')
 	print('Output directory: ' + output_folder)
 	result_folder = os.path.join(output_folder,'results')
 	script_folder = os.path.join(output_folder,'scripts')

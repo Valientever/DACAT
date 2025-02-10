@@ -6,6 +6,7 @@ from dataloader import prepare_dataset, prepare_image_features, prepare_batch
 from model_anticipation import AnticipationModel
 from newly_opt_ykx.LongShortNet.model_phase_maxr_v1_maxca import PhaseModel
 import util_train as util
+from corruptions import corruption
 
 opts = parser.parse_args()
 
@@ -38,6 +39,7 @@ with open(model.log_path, "w") as log_file:
 		model.net_short.train()
 		if opts.bn_off:
 			model.net_short.cnn.eval()
+		print('add corrupions in train_longshort.py after line 57')
 
 		for _,op in tqdm(train_set):
 
@@ -53,9 +55,10 @@ with open(model.log_path, "w") as log_file:
 
 				if not opts.image_based and opts.shuffle:
 					model.net_short.temporal_head.reset()
-
 				data, target = prepare_batch(data,target)
-				
+				#add corruption to the data
+				if opts.corruption:
+					data = corruption(data,opts.corruption)
 				output = model.forward(data)
 				loss = model.compute_loss(output,target)
 				model.update_weights(loss)

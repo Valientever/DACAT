@@ -7,8 +7,10 @@ import csv
 import torch
 from torch.utils.data import Dataset, ConcatDataset, DataLoader
 import util_train as util
+from ipdb import set_trace
 
 def prepare_dataset(opts):
+	# set_trace()
 
 	data_aug = not opts.no_data_aug
 
@@ -23,6 +25,7 @@ def prepare_dataset(opts):
 			fold_path = os.path.join(data_folder,fold)
 			op_paths += [os.path.join(fold_path,op) for op in os.listdir(fold_path)]
 	elif opts.location == 'suppl_code':
+		print('this is being called: dataloader.py line 28')
 		data_folder = '../data/frames_1fps/'
 		op_paths = [os.path.join(data_folder,op) for op in os.listdir(data_folder)]
 
@@ -59,6 +62,7 @@ def prepare_dataset(opts):
 		#print('test')
 		test_set  = load_data(op_paths[42:43],opts,data_aug=False,shuffle=False)
 	elif opts.split=='cuhk4040':
+		print('this is being called: dataloader.py line 65')
 		op_paths.sort(key=os.path.basename)
 		#print('train')
 		train_set = load_data(op_paths[00:40],opts,data_aug=data_aug,shuffle=opts.shuffle)
@@ -72,6 +76,9 @@ def prepare_dataset(opts):
 def load_data(op_paths,opts,data_aug,shuffle):
 
 	if shuffle:
+		from ipdb import set_trace
+		set_trace()
+		print('this line in dataloader.py line 77 is being called')
 
 		data = []
 		for op_path in op_paths:
@@ -110,7 +117,7 @@ def collate_noshuffle(batch):
 	return data, target
 
 def prepare_image_features(net,opts,test_mode=False):
-
+	print('this is being called: dataloader.py line 120')
 	train_set, val_set, test_set = prepare_dataset(opts)
 
 	if test_mode:
@@ -229,6 +236,7 @@ class Cholec80(Dataset):
 		return img_seq, target_seq
 
 	def load_frame(self,index):
+		print('this is being called: dataloader.py line 239')
 		target = self.target[index]
 
 		file_name = os.path.join(self.image_path,'{:08d}.{}'.format(index,self.ext))

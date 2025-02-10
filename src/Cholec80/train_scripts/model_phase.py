@@ -16,11 +16,12 @@ class PhaseModel(nn.Module):
 		self.train = train
 
 		if opts.image_based:
+			print(f'This is being called: model_phase.py- line 19')
 			self.net = CNN(opts.num_classes,opts.backbone,opts).cuda()
 			for param in self.net.parameters():
 				param.requires_grad = True
 		else:  #............
-			print(f'This is being called: PhaseModel- line 22')
+			print(f'This is being called: model_phase.py- line 22')
 			self.net = TemporalCNN(opts.num_classes,opts.backbone,opts.head,opts).cuda()
 		#print(self.net)
 
@@ -82,6 +83,7 @@ class PhaseModel(nn.Module):
 			#	self.optimizer = AGC(self.net.parameters(), self.optimizer, model=self.net, ignore_agc=['out_layer'])
 
 	def forward(self,data):
+		# print(f'This is being called: model_phase- line 85')
 
 		if self.opts.only_temporal:
 			output = self.net.temporal_head(data)

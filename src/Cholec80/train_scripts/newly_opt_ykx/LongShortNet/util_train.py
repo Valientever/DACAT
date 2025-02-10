@@ -6,7 +6,8 @@ import numpy as np
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, precision_score, recall_score, jaccard_score, f1_score
 from ipdb import set_trace
 def prepare_output_folders(opts):
-
+	print(f'this is being called: util_train.py/long_sn line 9 ')
+	# set_trace()
 	if opts.image_based:
 		temp_head = 'imageBased'
 	else:
@@ -34,6 +35,8 @@ def prepare_output_folders(opts):
 	)
 
 	if opts.only_temporal:
+		# set_trace()
+		print('this is being called: util_train.py/long_sn line 38')
 		trial_name_full = '{}_{}_{}Split_{}_{}_2step'.format(
 			datetime.datetime.now().strftime("%Y%m%d-%H%M"),
 			opts.trial_name,
@@ -46,7 +49,7 @@ def prepare_output_folders(opts):
 	subfolder_folder = os.path.join(opts.output_folder,opts.experiment_name, opts.step_2)
 	if not os.path.exists(subfolder_folder):
 		os.makedirs(subfolder_folder)
-	output_folder = os.path.join(opts.output_folder,trial_name_full)
+	output_folder = os.path.join(opts.subfolder_folder,output_folder,trial_name_full)
 	print('Output directory: ' + output_folder)
 	result_folder = os.path.join(output_folder,'results')
 	script_folder = os.path.join(output_folder,'scripts')

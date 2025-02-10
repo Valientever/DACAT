@@ -6,6 +6,7 @@ from dataloader import prepare_dataset, prepare_image_features, prepare_batch
 from model_anticipation import AnticipationModel
 from model_phase import PhaseModel
 import util_train as util
+from corruptions import corruption
 
 opts = parser.parse_args()
 
@@ -19,9 +20,10 @@ if opts.task == 'phase':
 	model = PhaseModel(opts)
 
 if opts.only_temporal:
+	# print(f'train.py is calling this funtion: prepare_dataset- line 22')
 	train_set, val_set, test_set = prepare_image_features(model.net,opts)
 else:  #.....
-	print(f'train.py is calling this funtion: prepare_dataset- line 24')
+	print(f'train.py is calling this funtion: prepare_dataset- line 25')
 	train_set, val_set, test_set = prepare_dataset(opts)
 
 
@@ -32,6 +34,8 @@ with open(model.log_path, "w") as log_file:
 
 	start_epoch = util.get_start_epoch(opts)
 	num_iters_per_epoch = util.get_iters_per_epoch(train_set,opts)
+	print('add corrupions in train.py line 60')
+
 
 	for epoch in range(start_epoch,opts.epochs+1):
 
@@ -51,8 +55,14 @@ with open(model.log_path, "w") as log_file:
 
 				if not opts.image_based and opts.shuffle:
 					model.net.temporal_head.reset()
+				
+				# print('this is being called- train.py- line 56')
 
 				data, target = prepare_batch(data,target)
+				#add corruption here
+				if opts.corruption:
+					data = corruption(data,opts.corruption)
+
 				
 				output = model.forward(data)
 				loss = model.compute_loss(output,target)

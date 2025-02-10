@@ -86,6 +86,7 @@ class AnticipationModel:
 			#	self.optimizer = AGC(self.net.parameters(), self.optimizer, model=self.net, ignore_agc=['out_layer'])
 
 	def forward(self,data):
+		print('this is being called: model_anticipation.py line 89')
 
 		if self.opts.only_temporal:
 			output = self.net.temporal_head(data)
@@ -180,6 +181,7 @@ class AnticipationModel:
 			}
 			#if self.opts.image_based:
 			if (epoch % 10) == 0:
+				
 				model_file_path = os.path.join(self.model_folder,'checkpoint_{:03d}.pth.tar'.format(epoch))
 				torch.save(checkpoint, model_file_path)
 			#else:
