@@ -2,6 +2,7 @@ import os
 import numpy as np
 from scipy.ndimage import label
 from ipdb import set_trace
+import argparse
 
 def read_phase_label(filename):
     """
@@ -178,11 +179,12 @@ def evaluate(gtLabelID, predLabelID, fps):
     return np.array(res), np.array(prec), np.array(rec), acc
 
 
-def main():
+def main(experiment_name, predict_name):
     # ------------------------------------------------------------------------
     # Equivalent to main.m
     # ------------------------------------------------------------------------
     import math
+    import sys
 
     # Root directory
     # maindir = r"D:/MATLAB/PhaseReg/20240704_convnext2"
@@ -191,7 +193,14 @@ def main():
     # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/Defocus_blur/defocus_blur_5_5_3/"
     # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/Motion_blur/motion_blur_10_3/"
     # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/Uneve_ill/uneven_ill_5_5_5/"
-    maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/diff_pred/diff_pred_1/"
+    # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/diff_pred/diff_pred_1/"
+    #logging the output to a .txt file
+    root_dir = "/home/santhi/Documents/DACAT/src/Cholec80/results"
+    log_file = os.path.join(root_dir, experiment_name, "eval_results.txt")
+    sys.stdout = open(log_file, "w")
+    sys.stderr = sys.stdout
+    print(f"Logging started for experiment: {experiment_name}, prediction: {predict_name}")
+    maindir = os.path.join(root_dir, experiment_name, predict_name)
 
     # Gather ground-truth text file paths
     # For example, we pick from 41..80
@@ -322,4 +331,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    # parser.add_argument("--root_dir", type=str, default="../results/")
+    parser.add_argument("--experiment_name", type=str, default="test")
+    parser.add_argument("--predict_name", type=str, default="predicts")
+    args = parser.parse_args()
+    main(args.experiment_name, args.predict_name)

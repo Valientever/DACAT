@@ -24,7 +24,8 @@ suffix = 'predv2_DACAT'
 # out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/Uneve_ill/uneven_ill_5_5_5/')
 # out_folder = os.path.dirname(os.path.dirname(opts.resume)).replace('/checkpoints','/corrupt_pred/diff_pred/diff_pred_1/')
 #/home/santhi/Documents/DACAT/src/Cholec80/results/data_path/data/20250210-0946_DACAT_cuhk4040Split_lstm_convnextv2_lr1e-05_bs1_seq64_e2e/models/checkpoint_best_acc.pth.tar
-out_folder = os.path.join(opts.out_folder,opts.experiment_name)
+# set_trace()
+out_folder = os.path.join(opts.output_folder,opts.experiment_name,opts.step_3)
 if not os.path.exists(out_folder):
 	os.makedirs(out_folder)
 
@@ -147,8 +148,9 @@ with torch.no_grad():
 		labels.to_csv(os.path.join(gt_folder,'video{}-phase.txt'.format(ID)), index=True,index_label='Frame',sep='\t')
 		print('saved predictions/labels for video {}'.format(ID))
 
-
-	epoch = torch.load(opts.resume)['epoch']
-	model.summary(log_file=os.path.join(pred_folder, 'log.txt'), epoch=epoch)
-	from visualization.Visualize import visual_main
-	visual_main(out_folder, suffixpred=suffix[4:])
+	if opts.resume == 1:
+		resume = os.path.join(opts.output_folder,opts.experiment_name,opts.step_3,'models','checkpoint_best_acc.pth.tar')
+		epoch = torch.load(resume)['epoch']
+		model.summary(log_file=os.path.join(pred_folder, 'log.txt'), epoch=epoch)
+		from visualization.Visualize import visual_main
+		visual_main(out_folder, suffixpred=suffix[4:])

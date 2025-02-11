@@ -178,7 +178,7 @@ class PhaseModel(nn.Module):
 
 		# set_trace()
 		#I want this to access the path to the results and then join the exp_name 
-		input_file = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, 'phase')
+		input_file = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, opts.step_1)
 		subdirs = [os.path.join(input_file, d) for d in os.listdir(input_file)]
 		if subdirs:
 			latest_subdir = max(subdirs, key=os.path.getmtime)
@@ -189,10 +189,18 @@ class PhaseModel(nn.Module):
 		long_net_pretrain_path = os.path.join(latest_subdir,'models') #os.path.dirname(__file__)
 		long_net_pretrain_path = os.path.join(long_net_pretrain_path,'checkpoint_best_acc.pth.tar')
 		print(f"long_net_pretrain_path: {long_net_pretrain_path}")
-		self.net_long.load_state_dict(torch.load(long_net_pretrain_path)['state_dict'])
+		# self.net_long.load_state_dict(torch.load(long_net_pretrain_path)['state_dict'])
+
+		self.net_long.load_state_dict(torch.load(long_net_pretrain_path)['state_dict'],strict=False)
   
-		if opts.resume is not None:
-			checkpoint = torch.load(opts.resume)
+		# if opts.resume is not None:
+		# 	checkpoint = torch.load(opts.resume)
+		# 	self.net_short.load_state_dict(checkpoint['state_dict'])
+		# 	print('loaded model weights...')
+		if opts.resume == 1:
+			set_trace()
+			resume = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, opts.step_1)
+			checkpoint = torch.load(resume)
 			self.net_short.load_state_dict(checkpoint['state_dict'])
 			print('loaded model weights...')
 
@@ -219,7 +227,10 @@ class PhaseModel(nn.Module):
 			# self.criterion = nn.CrossEntropyLoss(reduction='mean')
 			
 			self.optimizer = optim.AdamW(self.net_short.parameters(), lr=opts.lr, weight_decay=opts.weight_decay)
-			if opts.resume is not None:
+			# if opts.resume is not None:
+			# 	self.optimizer.load_state_dict(checkpoint['optimizer'])
+			# 	print('loaded optimizer settings...')
+			if opts.resume ==1:
 				self.optimizer.load_state_dict(checkpoint['optimizer'])
 				print('loaded optimizer settings...')
 			

@@ -1,45 +1,86 @@
 #corruptions
 import cv2
 import numpy as np
+from ipdb import set_trace
+import torch
+import numpy as np
+import cv2
+
+#Gaussian noise
+def add_gaussian_noise(image, mean=0, std=25):
+    """
+    Adds Gaussian noise to a PyTorch image tensor without changing its shape or type.
+
+    Args:
+        image (torch.Tensor): Input image tensor of shape (C, H, W) or (B, C, H, W).
+        mean (float): Mean of the Gaussian noise.
+        std (float): Standard deviation of the Gaussian noise.
+
+    Returns:
+        torch.Tensor: Noisy image tensor with the same shape and type as the input.
+    """
+    # Ensure noise has the same shape as the image
+    noise = torch.randn_like(image) * std + mean  # Gaussian noise
+
+    # Add noise and retain original type
+    noisy_image = image + noise
+
+    # Clip values to stay within valid range if input is uint8 (0-255)
+    if image.dtype == torch.uint8:
+        noisy_image = torch.clamp(noisy_image, 0, 255).to(torch.uint8)
+
+    return noisy_image
 
 
-
-#Noise
-def add_gaussian_noise(image):
-    row, col, ch = image.shape
-    mean = 0
-    sigma = 25
-    gauss = np.random.normal(mean, sigma, (row, col, ch)).astype('uint8')
-    noisy = cv2.add(image, gauss)
-    return noisy
 
 #Motion blur
 def apply_motion_blur(image, kernel_size=15):
-    kernel = np.zeros((kernel_size, kernel_size))
-    kernel[int((kernel_size - 1)/2), :] = np.ones(kernel_size)
-    kernel /= kernel_size
-    blurred = cv2.filter2D(image, -1, kernel)
-    return blurred
+    image_np = image.permute(1, 2, 0).cpu().numpy()
+
+    kernel = np.zeros((kernel_size, kernel_size), dtype=np.float32)
+    kernel[int((kernel_size - 1) / 2), :] = np.ones(kernel_size) / kernel_size
+
+    blurred = cv2.filter2D(image_np, -1, kernel)
+
+    blurred_tensor = torch.from_numpy(blurred).permute(2, 0, 1).to(image.device).float()
+    return blurred_tensor
 
 #Defocus blur
 def apply_defocus_blur(image, kernel_size=15):
-    blurred = cv2.GaussianBlur(image, (kernel_size, kernel_size), 0)
-    return blurred
+    image_np = image.permute(1, 2, 0).cpu().numpy()
+
+    blurred = cv2.GaussianBlur(image_np, (kernel_size, kernel_size), 0)
+
+    blurred_tensor = torch.from_numpy(blurred).permute(2, 0, 1).to(image.device).float()
+    return blurred_tensor
 
 
 #Ajust illumination
-def adjust_brightness_contrast(image, brightness=30, contrast=50):
-    adjusted = cv2.convertScaleAbs(image, alpha=contrast / 127 + 1, beta=brightness)
-    return adjusted
+def uneven_illumination(image, strength=0.5):
+    image_np = image.permute(1, 2, 0).cpu().numpy()
+
+    h, w, c = image_np.shape
+    gradient = np.linspace(1 - strength, 1, w, dtype=np.float32)
+    gradient = np.tile(gradient, (h, 1)).reshape(h, w, 1)
+
+    illuminated = image_np * gradient
+    illuminated = np.clip(illuminated, 0, 1)
+
+    illuminated_tensor = torch.from_numpy(illuminated).permute(2, 0, 1).to(image.device).float()
+    return illuminated_tensor
 
 #Smoke effect
-def add_smoke_effect(image, smoke_overlay):
-    alpha = 0.5  # Adjust transparency
-    smoke_overlay = cv2.GaussianBlur(smoke_overlay, (15, 15), 0)
-    if smoke_overlay.shape[:2] != image.shape[:2]:
-        smoke_overlay = cv2.resize(smoke_overlay, (image.shape[1], image.shape[0]))
-    combined = cv2.addWeighted(image, 1-alpha, smoke_overlay, alpha, 0)
-    return combined
+def add_smoke_effect(image, intensity=0.5):
+    image_np = image.permute(1, 2, 0).cpu().numpy()
+
+    h, w, c = image_np.shape
+    smoke = np.random.normal(loc=0.5, scale=intensity, size=(h, w, c)).astype(np.float32)
+
+    smoked = cv2.addWeighted(image_np, 1 - intensity, smoke, intensity, 0)
+    smoked = np.clip(smoked, 0, 1)
+
+    smoked_tensor = torch.from_numpy(smoked).permute(2, 0, 1).to(image.device).float()
+    return smoked_tensor
 
 
 def corruption(image, corruption_type):
@@ -49,8 +90,8 @@ def corruption(image, corruption_type):
         return apply_motion_blur(image)
     elif corruption_type == 'defocus_blur':
         return apply_defocus_blur(image)
-    elif corruption_type == 'brightness_contrast':
-        return adjust_brightness_contrast(image)
+    elif corruption_type == 'uneven_illumination':
+        return uneven_illumination(image)
     elif corruption_type == 'smoke_effect':
         smoke_overlay = cv2.imread('smoke.png', cv2.IMREAD_UNCHANGED)
         return add_smoke_effect(image, smoke_overlay)

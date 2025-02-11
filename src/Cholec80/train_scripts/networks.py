@@ -63,7 +63,7 @@ class LSTMHead(nn.Module):
 		self.prev_feat = None
 
 	def forward(self,x):
-		print(f"this is being called: networks.py ---> LSTMHead- line 65")
+		# print(f"this is being called: networks.py ---> LSTMHead- line 65")
 
 		x, hidden_state = self.lstm(x,self.hidden_state)
 		x = self.out_layer(x)
@@ -74,7 +74,7 @@ class LSTMHead(nn.Module):
 
 	def forward_sliding_window(self,x):
 
-		#print('#')
+		print('this is being called: networks.py ---> LSTMHead- line 77')
 		if self.prev_feat is not None:
 			x_sliding = torch.cat((self.prev_feat,x),dim=1)
 		else:

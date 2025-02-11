@@ -91,6 +91,7 @@ def load_data(op_paths,opts,data_aug,shuffle):
 		data = [('shuffled',data)]
 
 	else:
+		# print('this line in dataloader.py line 94 is being called')
 
 		data = []
 		for op_path in op_paths:
@@ -236,7 +237,7 @@ class Cholec80(Dataset):
 		return img_seq, target_seq
 
 	def load_frame(self,index):
-		print('this is being called: dataloader.py line 239')
+		# print('this is being called: dataloader.py line 239')
 		target = self.target[index]
 
 		file_name = os.path.join(self.image_path,'{:08d}.{}'.format(index,self.ext))

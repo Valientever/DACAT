@@ -64,8 +64,12 @@ parser_phase.add_argument('--num_train_sets', type=int, default=3)
 # parser_phase.add_argument('--output_folder', type=str, default='../output/checkpoints/phase/')
 parser_phase.add_argument('--output_folder', type=str, default='../results/')
 parser_phase.add_argument('--step_1', type=str, default='phase')
-parser_phase.add_argument('--step_2', type=str, default='anticipation')
+parser_phase.add_argument('--step_2', type=str, default='predicts')
+parser_phase.add_argument('--step_3', type=str, default='predicts')
 parser_phase.add_argument('--trial_name', type=str, default='trial')
+parser_phase.add_argument('--step', type=int, default=1)
+# parser_phase.add_argument('--phase_change', type=str, default='phase') ##hold for now
+
 
 parser_phase.add_argument('--experiment_name', type=str, default='trial')
 
@@ -92,8 +96,7 @@ parser_phase.add_argument('--cheat', action='store_true')
 parser_phase.add_argument('--freeze',action='store_true',help='freezes bottom 3 blocks of ResNet-50, ResNet-50-GN or ConvNeXt.')
 parser_phase.add_argument('--sliding_window',action='store_true')
 parser_phase.add_argument('--random_seed',action='store_true')
-parser_phase.add_argument('--out_folder', type=str, default='../predicts/')
-parser_phase.add_argument('--corruption', type=int, default=-1)
+parser_phase.add_argument('--corruption', type=str, default=-1)
 
 # NEW: Add --corrupt argument for phase
 parser_phase.add_argument('--corrupt', type=int, default=-1,
