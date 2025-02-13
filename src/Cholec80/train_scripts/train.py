@@ -35,9 +35,12 @@ with open(model.log_path, "w") as log_file:
 	start_epoch = util.get_start_epoch(opts)
 	num_iters_per_epoch = util.get_iters_per_epoch(train_set,opts)
 	print('add corrupions in train.py line 60')
+	print('corruption:',opts.corruption)
+
 
 
 	for epoch in range(start_epoch,opts.epochs+1):
+
 
 		model.reset_stats()
 		model.net.train()
