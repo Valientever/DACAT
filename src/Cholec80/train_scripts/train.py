@@ -65,6 +65,8 @@ with open(model.log_path, "w") as log_file:
 				#add corruption here
 				if opts.corruption:
 					data = corruption(data,opts.corruption)
+				else:
+					data = data
 
 				
 				output = model.forward(data)

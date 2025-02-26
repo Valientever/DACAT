@@ -59,6 +59,8 @@ with open(model.log_path, "w") as log_file:
 				#add corruption to the data
 				if opts.corruption:
 					data = corruption(data,opts.corruption)
+				else: 
+					data = data
 				output = model.forward(data)
 				loss = model.compute_loss(output,target)
 				model.update_weights(loss)

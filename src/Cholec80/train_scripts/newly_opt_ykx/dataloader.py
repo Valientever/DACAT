@@ -9,44 +9,78 @@ from torch.utils.data import Dataset, ConcatDataset, DataLoader
 import util_train as util
 import random
 from ipdb import set_trace
+import corruptions 
 
 
-def add_gaussian_noise(image):
-    row, col, ch = image.shape
-    mean = 0
-    sigma =25#15#25
-    gauss = np.random.normal(mean, sigma, (row, col, ch)).astype('uint8')
-    noisy = cv2.add(image, gauss)
-    return noisy
+# def add_gaussian_noise(image):
+#     row, col, ch = image.shape
+#     mean = 0
+#     sigma =25#15#25
+#     gauss = np.random.normal(mean, sigma, (row, col, ch)).astype('uint8')
+#     noisy = cv2.add(image, gauss)
+#     return noisy
 
-#Defocus blur
-def defocus_blur(image):
-	return cv2.GaussianBlur(image, (15,15),5) #increase kernal size or sigma for more blur
+# #Defocus blur
+# def defocus_blur(image):
+# 	return cv2.GaussianBlur(image, (15,15),5) #increase kernal size or sigma for more blur
 
-#Motion blur
-def motion_blur(image):
-	size = 25  #kernal size, increase for more blur
-	kernel_motion_blur = np.zeros((size, size))
-	kernel_motion_blur[int((size-1)/2), :] = np.ones(size)
-	kernel_motion_blur /= size
-	return cv2.filter2D(image, -1, kernel_motion_blur)
+# #Motion blur
+# def motion_blur(image):
+# 	size = 25  #kernal size, increase for more blur
+# 	kernel_motion_blur = np.zeros((size, size))
+# 	kernel_motion_blur[int((size-1)/2), :] = np.ones(size)
+# 	kernel_motion_blur /= size
+# 	return cv2.filter2D(image, -1, kernel_motion_blur)
 
-#Uneven illumination
-def uneven_illumination(image):
-	rows, cols, _ = image.shape
-	gradient = np.linspace(1, 0.6,cols, dtype=np.float32) #1 is lt side, 0.6 is rt side, as the number increase 
-															# it is more bright. 0.6 is less bright than 1
-	mask = np.tile(gradient, (rows, 1))
-	for c in range(3):
-		image[:, :, c] = image[:, :, c].astype(np.float32) * mask
-	image = np.clip(image, 0, 255).astype(np.uint8)
-	return image
+# #Uneven illumination
+# def uneven_illumination(image):
+# 	rows, cols, _ = image.shape
+# 	gradient = np.linspace(1, 0.6,cols, dtype=np.float32) #1 is lt side, 0.6 is rt side, as the number increase 
+# 															# it is more bright. 0.6 is less bright than 1
+# 	mask = np.tile(gradient, (rows, 1))
+# 	for c in range(3):
+# 		image[:, :, c] = image[:, :, c].astype(np.float32) * mask
+# 	image = np.clip(image, 0, 255).astype(np.uint8)
+# 	return image
 
-#Smoke
-def smoke(image):
-	overlay = image.copy()
-	alpha = 0.5
-	return cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
+# #Smoke
+# def smoke(image):
+# 	overlay = image.copy()
+# 	alpha = 0.5
+# 	return cv2.addWeighted(overlay, alpha, image, 1 - alpha, 0)
+
+# def random_corrupt(image):
+#     """
+#     Applies random corruptions to 50% of the images randomly.
+#     Ensures that exactly 50% of images are corrupted.
+#     """
+#     num_images = len(image)
+#     num_corrupt = num_images // 2  # 50% corruption
+
+#     # Randomly select 50% of the images
+#     corrupt_indices = random.sample(range(num_images), num_corrupt)
+#     corrupted_count = 0
+
+#     corruption_methods = []
+
+#     for i in corrupt_indices:
+#         if corrupted_count >= num_corrupt:
+#             break  # Stop corruption once 50% is done
+
+#         # Select a random corruption method
+#         corruption_method = random.choice(corruption_methods)
+
+#         # Apply the corruption
+#         images[i] = corruption_method(images[i])
+
+#         corrupted_count += 1
+
+#     # **Verification Step**: Check if exactly 50% are corrupted
+#     assert corrupted_count == num_corrupt, f"Error: {corrupted_count} images corrupted instead of {num_corrupt}."
+
+#     print(f"✅ Successfully corrupted {corrupted_count}/{num_images} images.")
+
+#     return images
 
 def prepare_dataset(opts):
 
@@ -188,8 +222,9 @@ def prepare_batch(data,target):
 
 class Cholec80Test():
 	def __init__(self, image_path, ID, opts, seq_len=None):
-		
+		# set_trace()
 		#print(ID)
+		self.opts = opts
 		self.image_path = image_path
 		self.seq_len = opts.seq_len if seq_len is None else seq_len
 		self.ext = 'jpg'
@@ -227,8 +262,8 @@ class Cholec80Test():
 		self.targetbank = []
   
 	def __next__(self):
-		
-		img, target = self.load_frame(self.idx)
+		# print('this is being called next line 264: ',self.idx)
+		img, target = self.load_frame(self.idx,self.opts)
 		# if self.idx == 0:
 		# 	self.imagebank = [img] * self.seq_len
 		# 	self.targetbank = [target] * self.seq_len
@@ -248,26 +283,53 @@ class Cholec80Test():
 
 		return img_seq, target_seq
 
-	def load_frame(self,index):
+	def load_frame(self,index,opts):
 		# set_trace()
 		target = self.target[index]
+		# set_trace()
+		
 
 		file_name = os.path.join(self.image_path,'{:08d}.{}'.format(index,self.ext))
-		img = cv2.imread(file_name)
-		if index%3==0:
-		#adding noise
-		# if random.random( ) < 0.5:
-			img = add_gaussian_noise(img)
-		if index % 7 == 0 and index % 3 != 0:
-			img = defocus_blur(img)
-		if index % 11 == 0 and (index % 3 != 0 or index % 7 != 0):
-			img = motion_blur(img)
-		if index % 13 == 0 and (index % 3 != 0 or index % 7 != 0 or index % 11 != 0):
-			img = uneven_illumination(img)
-			# img = smoke(img)
+		img = cv2.imread(file_name, cv2.IMREAD_COLOR)
+		# print(f'image type :{type(img)}')
+		# print(f'image shape: {img.shape}')
+		img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)    # still NumPy
+		assert img is not None, f"Error: Could not load image at {file_name}"
+
+		# Convert to float32 Torch tensor of shape [C, H, W]:
+		img = torch.from_numpy(img).permute(2, 0, 1).float() / 255.0
+		# print(f'image type after torch tensor: {type(img)}')
+
+		# if img.dim() == 3:  # Check if in test mode
+		# 	img = img.unsqueeze(0)  # Convert [C, H, W] → [1, C, H, W] (Batch dimension)
+		# 	print(f"✅ Adjusted test image shape to {img.shape}") 
+
+		 # **Before corruptions, remove batch dimension if present**
+		img = img.squeeze(0)
+	
+		# if opts.corruption_type == 'gaussian_noise':
+		# 	img = corruptions.add_gaussian_noise(img)
+		# elif opts.corruption_type == 'motion_blur':
+		# 	img = corruptions.apply_motion_blur(img)
+		# elif opts.corruption_type == 'defocus_blur':
+		# 	img = corruptions.apply_defocus_blur(img)
+		# elif opts.corruption_type == 'uneven_illumination':
+		# 	img = corruptions.uneven_illumination(img)
+		# elif opts.corruption_type == 'smoke_effect':
+		# 	img = corruptions.add_smoke_effect(img, intensity=0.7)
+		# elif opts.corruption_type == 'random':
+		# 	img = corruptions.random_corrupt(img)
 		# else:
 		# 	img = img
-		img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+		
+		# Albumentations typically wants a NumPy image in [H, W, C] order.
+		# img = img.permute(1, 2, 0).cpu().numpy().astype('uint8')
+		# print(f'image type after numpy: {type(img)}')
+
+		#convert back to NumPy 
+		img = img.permute(1, 2, 0).cpu().numpy()  # Convert to [H, W, C]
+		img = (img * 255).astype(np.uint8)  # Ensure dtype is uint8
+
 		img = self.transform(image=img)['image']
 
 		return img, target

@@ -180,6 +180,7 @@ def evaluate(gtLabelID, predLabelID, fps):
 
 
 def main(experiment_name, predict_name):
+# def main():
     # ------------------------------------------------------------------------
     # Equivalent to main.m
     # ------------------------------------------------------------------------
@@ -194,7 +195,7 @@ def main(experiment_name, predict_name):
     # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/Motion_blur/motion_blur_10_3/"
     # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/Uneve_ill/uneven_ill_5_5_5/"
     # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/diff_pred/diff_pred_1/"
-    #logging the output to a .txt file
+    # logging the output to a .txt file
     root_dir = "/home/santhi/Documents/DACAT/src/Cholec80/results"
     log_file = os.path.join(root_dir, experiment_name, "eval_results.txt")
     sys.stdout = open(log_file, "w")
@@ -331,8 +332,9 @@ def main(experiment_name, predict_name):
 
 
 if __name__ == "__main__":
+    # main()
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--root_dir", type=str, default="../results/")
+    parser.add_argument("--root_dir", type=str, default="../results/")
     parser.add_argument("--experiment_name", type=str, default="test")
     parser.add_argument("--predict_name", type=str, default="predicts")
     args = parser.parse_args()

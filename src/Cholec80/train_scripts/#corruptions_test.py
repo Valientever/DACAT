@@ -258,11 +258,11 @@ def random_corrupt(image):
         corruption_method = random.choice(corruption_methods)
         image = corruption_method(image)
         corruption_tracker["corrupted"] += 1  # Track corrupted images
-        # print(f"✅ Image CORRUPTED using {corruption_method.__name__}")
+        print(f"✅ Image CORRUPTED using {corruption_method.__name__}")
     else:
         corruption_tracker["uncorrupted"] += 1  # Track uncorrupted images
-        # print("❌ Image left UNCHANGED")
-    # print(f"Total: {corruption_tracker['total']} | Corrupted: {corruption_tracker['corrupted']} | Uncorrupted: {corruption_tracker['uncorrupted']}")
+        print("❌ Image left UNCHANGED")
+    print(f"Total: {corruption_tracker['total']} | Corrupted: {corruption_tracker['corrupted']} | Uncorrupted: {corruption_tracker['uncorrupted']}")
     return image  # Return the (possibly corrupted) image
 
 
@@ -280,5 +280,4 @@ def corruption(image, corruption_type):
     elif corruption_type == 'random':
         return random_corrupt(image)
     else:
-        # print("no corruption being called")
         return image

@@ -68,6 +68,7 @@ parser_phase.add_argument('--step_2', type=str, default='predicts')
 parser_phase.add_argument('--step_3', type=str, default='predicts')
 parser_phase.add_argument('--trial_name', type=str, default='trial')
 parser_phase.add_argument('--step', type=int, default=1)
+parser_phase.add_argument('--corruption_type', type=str, default="-1")
 # parser_phase.add_argument('--phase_change', type=str, default='phase') ##hold for now
 
 
@@ -96,7 +97,7 @@ parser_phase.add_argument('--cheat', action='store_true')
 parser_phase.add_argument('--freeze',action='store_true',help='freezes bottom 3 blocks of ResNet-50, ResNet-50-GN or ConvNeXt.')
 parser_phase.add_argument('--sliding_window',action='store_true')
 parser_phase.add_argument('--random_seed',action='store_true')
-parser_phase.add_argument('--corruption', type=str, default=-1)
+parser_phase.add_argument('--corruption', type=str, default="-1")
 
 # NEW: Add --corrupt argument for phase
 parser_phase.add_argument('--corrupt', type=int, default=-1,
