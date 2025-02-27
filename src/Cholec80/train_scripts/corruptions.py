@@ -281,4 +281,5 @@ def corruption(image, corruption_type):
         return random_corrupt(image)
     else:
         # print("no corruption being called")
-        return image
+        # return image
+        raise ValueError(f"Invalid corruption type '{corruption_type}'. Choose from: 'gaussian_noise', 'motion_blur', 'defocus_blur', 'uneven_illumination', 'smoke_effect', 'random'.")

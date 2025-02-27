@@ -103,7 +103,7 @@ with torch.no_grad():
 			data, target = next(offline_cholec80_test)
 			data, target = prepare_batch(data,target)
 
-			if opts.corruption_type:
+			if opts.corruption_type is not None:
 				data = corruptions.corruption(data,opts.corruption_type)
 			else:
 				data = data
@@ -156,11 +156,9 @@ with torch.no_grad():
 		labels.to_csv(os.path.join(gt_folder,'video{}-phase.txt'.format(ID)), index=True,index_label='Frame',sep='\t')
 		print('saved predictions/labels for video {}'.format(ID))
 
-	if opts.resume == 1:
-		resume = os.path.join(opts.output_folder,opts.experiment_name,opts.step_3,'models','checkpoint_best_acc.pth.tar')
-		epoch = torch.load(resume)['epoch']
-		model.summary(log_file=os.path.join(pred_folder, 'log.txt'), epoch=epoch)
-		from visualization.Visualize import visual_main
-		visual_main(out_folder, suffixpred=suffix[4:])
-
-	
+	# if opts.resume == 1:
+	resumePath = os.path.join(opts.output_folder,opts.experiment_name,opts.step_3,'models','checkpoint_best_acc.pth.tar')
+	epoch = torch.load(resumePath)['epoch']
+	model.summary(log_file=os.path.join(pred_folder, 'log.txt'), epoch=epoch)
+	from visualization.Visualize import visual_main
+	visual_main(out_folder, suffixpred=suffix[4:])

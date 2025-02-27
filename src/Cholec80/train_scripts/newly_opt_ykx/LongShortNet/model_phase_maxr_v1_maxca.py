@@ -191,19 +191,19 @@ class PhaseModel(nn.Module):
 		print(f"long_net_pretrain_path: {long_net_pretrain_path}")
 		# self.net_long.load_state_dict(torch.load(long_net_pretrain_path)['state_dict'])
 
-		self.net_long.load_state_dict(torch.load(long_net_pretrain_path)['state_dict'],strict=False)
+		self.net_long.load_state_dict(torch.load(long_net_pretrain_path)['state_dict'])
   
-		# if opts.resume is not None:
-		# 	checkpoint = torch.load(opts.resume)
-		# 	self.net_short.load_state_dict(checkpoint['state_dict'])
-		# 	print('loaded model weights...')
-		if opts.resume == 1:
-			set_trace()
-			resume = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, opts.step_1)
-			checkpoint = torch.load(resume)
+		if opts.resume is not None:
+			resumePath = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, opts.step_1)
+			checkpoint = torch.load(resumePath)
 			self.net_short.load_state_dict(checkpoint['state_dict'])
 			print('loaded model weights...')
 
+			# checkpoint = torch.load(opts.resume)
+		# 	self.net_short.load_state_dict(checkpoint['state_dict'])
+		# 	print('loaded model weights...')
+		# if opts.resume == 1:
+			# set_trace()
 		self.metric_meter = {
 			'train': util.PhaseMetricMeter(opts.num_classes),
 			'val': util.PhaseMetricMeter(opts.num_classes),
@@ -227,10 +227,10 @@ class PhaseModel(nn.Module):
 			# self.criterion = nn.CrossEntropyLoss(reduction='mean')
 			
 			self.optimizer = optim.AdamW(self.net_short.parameters(), lr=opts.lr, weight_decay=opts.weight_decay)
-			# if opts.resume is not None:
+			if opts.resume is not None:
 			# 	self.optimizer.load_state_dict(checkpoint['optimizer'])
 			# 	print('loaded optimizer settings...')
-			if opts.resume ==1:
+			# if opts.resume ==1:
 				self.optimizer.load_state_dict(checkpoint['optimizer'])
 				print('loaded optimizer settings...')
 			

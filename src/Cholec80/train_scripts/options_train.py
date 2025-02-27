@@ -49,7 +49,6 @@ parser_anticipation.add_argument('--freeze',action='store_true',help='freezes bo
 parser_anticipation.add_argument('--sliding_window',action='store_true')
 parser_anticipation.add_argument('--random_seed',action='store_true')
 
-
 #-----------#
 #-- PHASE --#
 #-----------#
@@ -68,7 +67,7 @@ parser_phase.add_argument('--step_2', type=str, default='predicts')
 parser_phase.add_argument('--step_3', type=str, default='predicts')
 parser_phase.add_argument('--trial_name', type=str, default='trial')
 parser_phase.add_argument('--step', type=int, default=1)
-parser_phase.add_argument('--corruption_type', type=str, default="-1")
+parser_phase.add_argument('--corruption_type', type=str, default=None)
 # parser_phase.add_argument('--phase_change', type=str, default='phase') ##hold for now
 
 
@@ -79,7 +78,7 @@ parser_phase.add_argument("--backbone", type=str, default='resnet50_gn', help="T
 parser_phase.add_argument("--head", type=str, default='lstm', help="Temporal head. Options: 'lstm' and 'tcn'")
 parser_phase.add_argument('--num_classes', type=int, default=7)
 # training
-parser_phase.add_argument('--epochs', type=int, default=200) #200
+parser_phase.add_argument('--epochs', type=int, default=200)
 parser_phase.add_argument('--split', type=str, default='tecno', help='"tecno (40/8/32)", "cuhk (32/8/40)" or "old (60/0/20 shuffled)"')
 parser_phase.add_argument('--batch_size', type=int, default=1)
 parser_phase.add_argument('--seq_len', type=int, default=64)
@@ -97,7 +96,7 @@ parser_phase.add_argument('--cheat', action='store_true')
 parser_phase.add_argument('--freeze',action='store_true',help='freezes bottom 3 blocks of ResNet-50, ResNet-50-GN or ConvNeXt.')
 parser_phase.add_argument('--sliding_window',action='store_true')
 parser_phase.add_argument('--random_seed',action='store_true')
-parser_phase.add_argument('--corruption', type=str, default="-1")
+parser_phase.add_argument('--corruption', type=str, default=None)
 
 # NEW: Add --corrupt argument for phase
 parser_phase.add_argument('--corrupt', type=int, default=-1,

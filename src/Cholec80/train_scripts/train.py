@@ -63,7 +63,7 @@ with open(model.log_path, "w") as log_file:
 
 				data, target = prepare_batch(data,target)
 				#add corruption here
-				if opts.corruption:
+				if opts.corruption is not None:
 					data = corruption(data,opts.corruption)
 				else:
 					data = data

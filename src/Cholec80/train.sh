@@ -20,7 +20,7 @@ echo "Starting Step 1....."
 
 # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect
 
-python3 train.py phase --split cuhk --backbone convnextv2 --freeze --workers 4 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name noise_1 --corruption 'gaussian_noise' --step_1 phase_1 --step 1 --epochs 10 #--corruption  #300
+python3 train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 4 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name noise_1 --corruption 'gaussian_noise' --step_1 phase_1 --step 1 --epochs 10 #--corruption  #300
 if [ $? -ne 0 ]; then
     echo "Step 1 failed. Exiting."
     exit 1
@@ -32,7 +32,7 @@ echo "Starting Step 2..."
 
 # Step 2
 # You need to use trained model in Step 1, and saved in .../train_scripts/newly_opt_ykx/LongShortNet/long_net_convnextv2.pth.tar
-python3 train_longshort.py phase --split cuhk --backbone convnextv2 --workers 4 --seq_len 64 --lr 1e-5 --random_seed --trial_name DACAT --experiment_name noise_1 --corruption 'gaussian_noise'  --step_1 phase_1 --step_2 phase_2 --step 2 --epochs 10 #--corruption #30 
+python3 train_longshort.py phase --split cuhk4040 --backbone convnextv2 --workers 4 --seq_len 64 --lr 1e-5 --random_seed --trial_name DACAT --experiment_name noise_1 --corruption 'gaussian_noise'  --step_1 phase_1 --step_2 phase_2 --step 2 --epochs 10 #--corruption #30 
 
 if [ $? -ne 0 ]; then
     echo "Step 2 failed. Exiting."

@@ -55,9 +55,10 @@ with open(model.log_path, "w") as log_file:
 
 				if not opts.image_based and opts.shuffle:
 					model.net_short.temporal_head.reset()
+
 				data, target = prepare_batch(data,target)
 				#add corruption to the data
-				if opts.corruption:
+				if opts.corruption is not None:
 					data = corruption(data,opts.corruption)
 				else: 
 					data = data
