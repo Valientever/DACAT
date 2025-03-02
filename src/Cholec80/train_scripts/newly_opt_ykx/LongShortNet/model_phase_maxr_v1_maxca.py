@@ -176,9 +176,8 @@ class PhaseModel(nn.Module):
 
 		print('loaded ImageNet weights...')
 
-		# set_trace()
 		#I want this to access the path to the results and then join the exp_name 
-		input_file = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, opts.step_1)
+		input_file = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, "phase_1")#opts.step_1
 		subdirs = [os.path.join(input_file, d) for d in os.listdir(input_file)]
 		if subdirs:
 			latest_subdir = max(subdirs, key=os.path.getmtime)
@@ -193,8 +192,17 @@ class PhaseModel(nn.Module):
 
 		self.net_long.load_state_dict(torch.load(long_net_pretrain_path)['state_dict'])
   
+		set_trace()
 		if opts.resume is not None:
-			resumePath = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, opts.step_1)
+			resumePath = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, "phase_2")
+			subdirs = [os.path.join(resumePath, d) for d in os.listdir(resumePath)]
+			if subdirs:
+				latest_subdir = max(subdirs, key=os.path.getmtime)
+			else:
+				raise ValueError('No subdirectories found in the results folder')
+			resumePath = os.path.join(latest_subdir,'models') #os.path.dirname(__file__)
+			resumePath = os.path.join(resumePath,'checkpoint_best_acc.pth.tar')
+			print(f"resumePath: {resumePath}")
 			checkpoint = torch.load(resumePath)
 			self.net_short.load_state_dict(checkpoint['state_dict'])
 			print('loaded model weights...')

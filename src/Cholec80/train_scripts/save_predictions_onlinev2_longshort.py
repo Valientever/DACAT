@@ -157,8 +157,17 @@ with torch.no_grad():
 		print('saved predictions/labels for video {}'.format(ID))
 
 	# if opts.resume == 1:
-	resumePath = os.path.join(opts.output_folder,opts.experiment_name,opts.step_3,'models','checkpoint_best_acc.pth.tar')
-	epoch = torch.load(resumePath)['epoch']
-	model.summary(log_file=os.path.join(pred_folder, 'log.txt'), epoch=epoch)
-	from visualization.Visualize import visual_main
-	visual_main(out_folder, suffixpred=suffix[4:])
+resumePath = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, "phase_2")
+subdirs = [os.path.join(resumePath, d) for d in os.listdir(resumePath)]
+if subdirs:
+	latest_subdir = max(subdirs, key=os.path.getmtime)
+else:
+	raise ValueError('No subdirectories found in the results folder')
+resumePath = os.path.join(latest_subdir,'models') #os.path.dirname(__file__)
+resumePath = os.path.join(resumePath,'checkpoint_best_acc.pth.tar')
+
+# resumePath = os.path.join(opts.output_folder,opts.experiment_name,opts.step_3,'models','checkpoint_best_acc.pth.tar')
+epoch = torch.load(resumePath)['epoch']
+model.summary(log_file=os.path.join(pred_folder, 'log.txt'), epoch=epoch)
+from visualization.Visualize import visual_main
+visual_main(out_folder, suffixpred=suffix[4:])
