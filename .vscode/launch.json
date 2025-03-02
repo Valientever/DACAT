@@ -1,0 +1,56 @@
+    // {
+    //     "version": "0.2.0",
+    //     "configurations": [
+    //         {
+    //             "name": "Debug Train Script",
+    //             "type": "python",
+    //             "request": "launch",
+    //             "program": "${workspaceFolder}/src/Cholec80/train_scripts/train.py",
+    //             "args": [
+    //                 "phase", "--split", "cuhk4040",
+    //                 "--backbone", "convnextv2", "--freeze",
+    //                 "--workers", "4", "--seq_len", "256",
+    //                 "--lr", "1e-4", "--random_seed",
+    //                 "--trial_name", "Step1", "--experiment_name", "${env:EXPERIMENT_NAME}",
+    //                 "--step_1", "phase_1", "--step", "1",
+    //                 "--epochs", "1"
+    //             ],
+    //             "console": "integratedTerminal",
+    //             "cwd": "${workspaceFolder}/src/Cholec80/train_scripts",
+    //             "env": { "EXPERIMENT_NAME": "your_experiment" },
+    //             "terminal": {
+    //                 "shell": "/bin/bash",
+    //                 "shellArgs": [
+    //                     "-c",
+    //                     "source /home/santhi/anaconda3/bin/activate dacat && python ${workspaceFolder}/src/Cholec80/train_scripts/train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 4 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name ${env:EXPERIMENT_NAME} --step_1 phase_1 --step 1 --epochs 1"
+    //                 ]
+    //             }
+    //         }
+    //     ]
+    // }
+
+    {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "Debug Train Script",
+                "type": "python",
+                "request": "launch",
+                "python": "/home/santhi/anaconda3/envs/dacat/bin/python",
+                "program": "${workspaceFolder}/src/Cholec80/train_scripts/train.py",
+                "args": [
+                    "phase", "--split", "cuhk4040",
+                    "--backbone", "convnextv2", "--freeze",
+                    "--workers", "4", "--seq_len", "256",
+                    "--lr", "1e-4", "--random_seed",
+                    "--trial_name", "Step1", "--experiment_name", "${env:EXPERIMENT_NAME}",
+                    "--step_1", "phase_1", "--step", "1",
+                    "--epochs", "1"
+                ],
+                "console": "integratedTerminal",
+                "cwd": "${workspaceFolder}/src/Cholec80/train_scripts",
+                "env": { "EXPERIMENT_NAME": "your_experiment" }
+            }
+        ]
+    }
+    

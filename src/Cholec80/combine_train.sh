@@ -1,7 +1,7 @@
 conda activate dacat
 
 # Create a variabe to store experiment name 
-EXPERIMENT_NAME="2_epoch"
+EXPERIMENT_NAME="7_epoch"
 
 # Define log file location
 LOG_FILE="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME/log_file.txt"
@@ -34,6 +34,9 @@ if [ $? -ne 0 ]; then
 fi
 echo "Step 1 completed successfully."
 
+echo "Logged step 1 complete at $(date)"
+
+
 echo "Starting Step 2..."
 
 
@@ -45,6 +48,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "Step 2 completed successfully."
+
+echo "Logged step 2 complete at $(date)"
 
 
 echo "Starting Step 3....."
@@ -62,6 +67,9 @@ if [ $? -ne 0 ]; then
 fi
 echo "Step 3 completed successfully."
 
+echo "Logged step 3 complete at $(date)"
+
+
 echo "Starting Step 4....."
 conda activate dacat #pytorch1_13
 cd /home/santhi/Documents/DACAT/src/Cholec80
@@ -78,4 +86,5 @@ fi
 echo "Step 4 completed successfully."
 # # # cp "/home/santhi/Documents/DACAT/src/Cholec80/output/checkpoints/phase/20250112-0858_Step1_cuhk4040Split_lstm_convnextv2_lr0.0001_bs1_seq256_frozen/models/checkpoint_best_acc.pth.tar" "/home/santhi/Documents/DACAT/src/Cholec80/train_scripts/newly_opt_ykx/LongShortNet/long_net_convnextv2.pth.tar"
 
+echo "Logged step 4 complete at $(date)"
 
