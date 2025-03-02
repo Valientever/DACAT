@@ -74,10 +74,11 @@ def prepare_dataset(opts):
 	return train_set, val_set, test_set
 
 def load_data(op_paths,opts,data_aug,shuffle):
+	
 
 	if shuffle:
 		from ipdb import set_trace
-		set_trace()
+		# set_trace()
 		print('this line in dataloader.py line 77 is being called')
 
 		data = []
@@ -92,12 +93,12 @@ def load_data(op_paths,opts,data_aug,shuffle):
 
 	else:
 		# print('this line in dataloader.py line 94 is being called')
-
 		data = []
 		for op_path in op_paths:
 			ID = os.path.basename(op_path)
 			if os.path.isdir(op_path):
 				#print(ID)
+				print(f"No. of workers: {opts.workers}")
 				dataset = Cholec80(op_path, ID, opts, data_aug, seq_len=1)
 				dataloader = DataLoader(dataset, batch_size=opts.batch_size*opts.seq_len, shuffle=False, num_workers=opts.workers, collate_fn=collate_noshuffle)
 				data.append((ID,dataloader))
