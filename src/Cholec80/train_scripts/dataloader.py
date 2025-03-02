@@ -98,7 +98,7 @@ def load_data(op_paths,opts,data_aug,shuffle):
 			ID = os.path.basename(op_path)
 			if os.path.isdir(op_path):
 				#print(ID)
-				print(f"No. of workers: {opts.workers}")
+				# print(f"No. of workers: {opts.workers}")
 				dataset = Cholec80(op_path, ID, opts, data_aug, seq_len=1)
 				dataloader = DataLoader(dataset, batch_size=opts.batch_size*opts.seq_len, shuffle=False, num_workers=opts.workers, collate_fn=collate_noshuffle)
 				data.append((ID,dataloader))
