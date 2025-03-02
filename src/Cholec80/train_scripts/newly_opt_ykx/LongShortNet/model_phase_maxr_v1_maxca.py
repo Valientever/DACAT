@@ -192,7 +192,6 @@ class PhaseModel(nn.Module):
 
 		self.net_long.load_state_dict(torch.load(long_net_pretrain_path)['state_dict'])
   
-		set_trace()
 		if opts.resume is not None:
 			resumePath = os.path.join('/home/santhi/Documents/DACAT/src/Cholec80/results/', opts.experiment_name, "phase_2")
 			subdirs = [os.path.join(resumePath, d) for d in os.listdir(resumePath)]
