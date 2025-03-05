@@ -14,3 +14,13 @@ dataloader.py in new_opt_ykx needs corrections.
 03/03/25 Santhi : commented line 101 in .../train_scripts/dataloader.py
                   Sequential calling of different experiments in a single bash file : combine_train.py
                   This is done on  head_detatched head
+
+
+03/05/25 Santhi : Changed the eval_results txt file location from ../results/11_epoch_w28
+                to ../results/gaussian_noise_w28/predicts/eval_results.txt. So the metrics for one type of experiment will be located at the respective predictions folder
+
+                Changed the input argument in step 3 from opts.corruption_type to opts.corruption , also in train.py, save_predictions_onlinev2_longshort.py and combine_train.py files. And finally remove opts.corruption_name in options_train.py file
+
+                Changed the input argument predict_name to a variable for step 3 & 4 as prediction_name, so I can use that for generating predictions and metrics for a type of experimene using same model
+
+                The model is saved as renamed_corruption head

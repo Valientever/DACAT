@@ -103,8 +103,8 @@ with torch.no_grad():
 			data, target = next(offline_cholec80_test)
 			data, target = prepare_batch(data,target)
 
-			if opts.corruption_type is not None:
-				data = corruptions.corruption(data,opts.corruption_type)
+			if opts.corruption is not None:#########change this to corruption
+				data = corruptions.corruption(data,opts.corruption)
 			else:
 				data = data
 

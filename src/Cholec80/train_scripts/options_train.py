@@ -67,7 +67,7 @@ parser_phase.add_argument('--step_2', type=str, default='predicts')
 parser_phase.add_argument('--step_3', type=str, default='predicts')
 parser_phase.add_argument('--trial_name', type=str, default='trial')
 parser_phase.add_argument('--step', type=int, default=1)
-parser_phase.add_argument('--corruption_type', type=str, default=None)
+# parser_phase.add_argument('--corruption_type', type=str, default=None)
 # parser_phase.add_argument('--phase_change', type=str, default='phase') ##hold for now
 
 

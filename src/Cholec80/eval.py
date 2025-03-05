@@ -197,7 +197,7 @@ def main(experiment_name, predict_name):
     # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/diff_pred/diff_pred_1/"
     # logging the output to a .txt file
     root_dir = "/home/santhi/Documents/DACAT/src/Cholec80/results"
-    log_file = os.path.join(root_dir, experiment_name, "eval_results.txt")
+    log_file = os.path.join(root_dir, experiment_name,predict_name, "eval_results.txt")
     sys.stdout = open(log_file, "w")
     sys.stderr = sys.stdout
     print(f"Logging started for experiment: {experiment_name}, prediction: {predict_name}")

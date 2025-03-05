@@ -266,20 +266,20 @@ def random_corrupt(image):
     return image  # Return the (possibly corrupted) image
 
 
-def corruption(image, corruption_type):
-    if corruption_type == 'gaussian_noise':
+def corruption(image, corruption):
+    if corruption == 'gaussian_noise':
         return add_gaussian_noise(image)
-    elif corruption_type == 'motion_blur':
+    elif corruption == 'motion_blur':
         return apply_motion_blur(image)
-    elif corruption_type == 'defocus_blur':
+    elif corruption == 'defocus_blur':
         return apply_defocus_blur(image)
-    elif corruption_type == 'uneven_illumination':
+    elif corruption == 'uneven_illumination':
         return uneven_illumination(image)
-    elif corruption_type == 'smoke_effect':
+    elif corruption == 'smoke_effect':
         return add_smoke_effect(image, intensity=0.7)
-    elif corruption_type == 'random':
+    elif corruption == 'random':
         return random_corrupt(image)
     else:
         # print("no corruption being called")
         # return image
-        raise ValueError(f"Invalid corruption type '{corruption_type}'. Choose from: 'gaussian_noise', 'motion_blur', 'defocus_blur', 'uneven_illumination', 'smoke_effect', 'random'.")
+        raise ValueError(f"Invalid corruption type '{corruption}'. Choose from: 'gaussian_noise', 'motion_blur', 'defocus_blur', 'uneven_illumination', 'smoke_effect', 'random'.")

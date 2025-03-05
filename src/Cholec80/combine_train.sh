@@ -4,7 +4,8 @@ conda activate dacat
 # Create a variabe to store experiment name 
 
 EXPERIMENT_NAME="11_epoch_w28"
-# CORRUPTION_NAME="11_epoch"
+CORRUPTION_NAME="11_epoch"
+PREDICTION_NAME="predicts"
 set -x
 # Define log file location
 LOG_PATH="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME"
@@ -25,7 +26,7 @@ echo "Logging started at $(date)"
 
 export CUDA_VISIBLE_DEVICES=0
 
-# # cd .../Cholec80/train_scripts
+# cd .../Cholec80/train_scripts
 cd /home/santhi/Documents/DACAT/src/Cholec80/train_scripts
 
 # Step 1
@@ -66,7 +67,7 @@ conda activate dacat #pytorch1_13
 export CUDA_VISIBLE_DEVICES=0
 
 python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name $EXPERIMENT_NAME --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
+     --resume 1 --experiment_name $EXPERIMENT_NAME --step_1 phase_2 --step_3 $PREDICTION_NAME --step 3 # .../checkpoint_best_acc.pth.tar
 
 
 if [ $? -ne 0 ]; then
@@ -84,7 +85,7 @@ cd /home/santhi/Documents/DACAT/src/Cholec80
 
 export CUDA_VISIBLE_DEVICES=0
 
-python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name 'predicts'
+python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name $PREDICTION_NAME
 
 
 if [ $? -ne 0 ]; then
@@ -102,6 +103,8 @@ conda activate dacat
 # Create a variabe to store experiment name 
 EXPERIMENT_NAME="gaussian_noise_w28"
 CORRUPTION_NAME="gaussian_noise"
+PREDICTION_NAME="predicts"
+
 
 # Define log file location
 LOG_PATH="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME"
@@ -126,13 +129,13 @@ export CUDA_VISIBLE_DEVICES=0
 # # cd .../Cholec80/train_scripts
 cd /home/santhi/Documents/DACAT/src/Cholec80/train_scripts
 
-# Step 1
-# train/val/test: cuhk 32/8/40; cuhknotest 32/8/0; cuhk4040; 40/0/40
+# # Step 1
+# # train/val/test: cuhk 32/8/40; cuhknotest 32/8/0; cuhk4040; 40/0/40
 echo "Starting Step 1....."
 
-# # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect
+# # # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect
 
-python3 train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 28 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_1 --step 1 --epochs 10     #--corruption  #300
+python3 train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 28 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_1 --step 1 --epochs 10     
 
 if [ $? -ne 0 ]; then
     echo "Step 1 failed. Exiting."
@@ -164,7 +167,7 @@ conda activate dacat #pytorch1_13
 export CUDA_VISIBLE_DEVICES=0
 
 python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
+     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 $PREDICTION_NAME --step 3 # .../checkpoint_best_acc.pth.tar
 
 
 if [ $? -ne 0 ]; then
@@ -182,7 +185,7 @@ cd /home/santhi/Documents/DACAT/src/Cholec80
 
 export CUDA_VISIBLE_DEVICES=0
 
-python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name 'predicts'
+python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name $PREDICTION_NAME
 
 
 if [ $? -ne 0 ]; then
@@ -201,6 +204,8 @@ conda activate dacat
 # Create a variabe to store experiment name 
 EXPERIMENT_NAME="motion_blur_w28"
 CORRUPTION_NAME="motion_blur"
+PREDICTION_NAME="predicts"
+
 
 # Define log file location
 LOG_PATH="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME"
@@ -263,7 +268,7 @@ conda activate dacat #pytorch1_13
 export CUDA_VISIBLE_DEVICES=0
 
 python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
+     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 $PREDICTION_NAME --step 3 # .../checkpoint_best_acc.pth.tar
 
 
 if [ $? -ne 0 ]; then
@@ -281,7 +286,7 @@ cd /home/santhi/Documents/DACAT/src/Cholec80
 
 export CUDA_VISIBLE_DEVICES=0
 
-python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name 'predicts'
+python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name $PREDICTION_NAME
 
 
 if [ $? -ne 0 ]; then
@@ -300,6 +305,8 @@ conda activate dacat
 # Create a variabe to store experiment name 
 EXPERIMENT_NAME="defocus_blur_w28"
 CORRUPTION_NAME="defocus_blur"
+PREDICTION_NAME="predicts"
+
 
 # Define log file location
 LOG_PATH="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME"
@@ -362,7 +369,7 @@ conda activate dacat #pytorch1_13
 export CUDA_VISIBLE_DEVICES=0
 
 python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
+     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 $PREDICTION_NAME --step 3 # .../checkpoint_best_acc.pth.tar
 
 
 if [ $? -ne 0 ]; then
@@ -380,7 +387,7 @@ cd /home/santhi/Documents/DACAT/src/Cholec80
 
 export CUDA_VISIBLE_DEVICES=0
 
-python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name 'predicts'
+python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name $PREDICTION_NAME
 
 
 if [ $? -ne 0 ]; then
@@ -399,6 +406,9 @@ conda activate dacat
 # Create a variabe to store experiment name 
 EXPERIMENT_NAME="uneven_illumination_w28"
 CORRUPTION_NAME="uneven_illumination"
+PREDICTION_NAME="predicts"
+PREDICTION_NAME="predicts"
+
 
 # Define log file location
 LOG_PATH="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME"
@@ -460,7 +470,7 @@ conda activate dacat #pytorch1_13
 export CUDA_VISIBLE_DEVICES=0
 
 python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
+     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 $PREDICTION_NAME --step 3 # .../checkpoint_best_acc.pth.tar
 
 
 if [ $? -ne 0 ]; then
@@ -478,7 +488,7 @@ cd /home/santhi/Documents/DACAT/src/Cholec80
 
 export CUDA_VISIBLE_DEVICES=0
 
-python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name 'predicts'
+python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name $PREDICTION_NAME
 
 
 if [ $? -ne 0 ]; then
@@ -497,6 +507,8 @@ conda activate dacat
 # Create a variabe to store experiment name 
 EXPERIMENT_NAME="smoke_effect_w28"
 CORRUPTION_NAME="smoke_effect"
+PREDICTION_NAME="predicts"
+
 
 # Define log file location
 LOG_PATH="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME"
@@ -559,7 +571,7 @@ conda activate dacat #pytorch1_13
 export CUDA_VISIBLE_DEVICES=0
 
 python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
+     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 $PREDICTION_NAME --step 3 # .../checkpoint_best_acc.pth.tar
 
 
 if [ $? -ne 0 ]; then
@@ -577,7 +589,7 @@ cd /home/santhi/Documents/DACAT/src/Cholec80
 
 export CUDA_VISIBLE_DEVICES=0
 
-python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name 'predicts'
+python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name $PREDICTION_NAME
 
 
 if [ $? -ne 0 ]; then
@@ -596,6 +608,8 @@ conda activate dacat
 # Create a variabe to store experiment name 
 EXPERIMENT_NAME="random_w28"
 CORRUPTION_NAME="random"
+PREDICTION_NAME="predicts"
+
 
 # Define log file location
 LOG_PATH="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME"
@@ -658,7 +672,7 @@ conda activate dacat #pytorch1_13
 export CUDA_VISIBLE_DEVICES=0
 
 python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
+     --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 $PREDICTION_NAME --step 3 # .../checkpoint_best_acc.pth.tar
 
 
 if [ $? -ne 0 ]; then
@@ -676,7 +690,7 @@ cd /home/santhi/Documents/DACAT/src/Cholec80
 
 export CUDA_VISIBLE_DEVICES=0
 
-python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name 'predicts'
+python3 eval.py --experiment_name $EXPERIMENT_NAME --predict_name $PREDICTION_NAME
 
 
 if [ $? -ne 0 ]; then
