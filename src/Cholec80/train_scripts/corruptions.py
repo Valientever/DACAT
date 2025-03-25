@@ -11,31 +11,83 @@ import noise
 import os
 from scipy.ndimage import gaussian_filter
 import random
-
+import matplotlib.pyplot as plt
 #Gaussian noise
-def add_gaussian_noise(image, mean=0, std=25):
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+import torch
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+
+def add_gaussian_noise(image, mean=0, std=0.5):
     """
     Adds Gaussian noise to a PyTorch image tensor without changing its shape or type.
+    Also saves the original image, noise, and noisy image to disk.
 
     Args:
-        image (torch.Tensor): Input image tensor of shape (C, H, W) or (B, C, H, W).
+        image (torch.Tensor): Input image tensor of shape (C, H, W), (B, C, H, W), or (B, T, C, H, W).
         mean (float): Mean of the Gaussian noise.
         std (float): Standard deviation of the Gaussian noise.
 
     Returns:
         torch.Tensor: Noisy image tensor with the same shape and type as the input.
     """
-    # Ensure noise has the same shape as the image
-    noise = torch.randn_like(image) * std + mean  # Gaussian noise
+    # Generate Gaussian noise with same shape
+    noise = torch.randn_like(image, dtype=torch.float32) * std + mean
+    noisy_image = image.float() + noise
 
-    # Add noise and retain original type
-    noisy_image = image + noise
-
-    # Clip values to stay within valid range if input is uint8 (0-255)
+    # Clip and convert back to uint8 if needed
     if image.dtype == torch.uint8:
         noisy_image = torch.clamp(noisy_image, 0, 255).to(torch.uint8)
 
+    # --- Utility to convert tensor to numpy for visualization ---
+    # def to_numpy(img_tensor, apply_denorm=True):
+    #     if img_tensor.dim() == 5:
+    #         img_tensor = img_tensor[0, 0]  # (C, H, W)
+    #     elif img_tensor.dim() == 4:
+    #         img_tensor = img_tensor[0]     # (C, H, W)
+
+    #     img_tensor = img_tensor.detach().cpu()
+
+    #     # Denormalize if needed (assume ImageNet mean/std)
+    #     if apply_denorm and torch.is_floating_point(img_tensor) and img_tensor.shape[0] == 3:
+    #         mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+    #         std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+    #         img_tensor = img_tensor * std + mean
+
+    #     img_np = img_tensor.permute(1, 2, 0).numpy()
+    #     img_np = (img_np * 255).clip(0, 255).astype(np.uint8)
+
+    #     return img_np
+
+    # # --- Utility to save image ---
+    # def save_image(img_tensor, save_path, title="Image", apply_denorm=True):
+    #     img_np = to_numpy(img_tensor, apply_denorm=apply_denorm)
+    #     os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    #     plt.imshow(img_np)
+    #     plt.title(title)
+    #     plt.axis('off')
+    #     plt.savefig(save_path, bbox_inches='tight')
+    #     plt.close()
+
+    # # Save all images
+    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check"
+    # save_image(image, os.path.join(base_path, "original_image.png"), title="Original Image", apply_denorm=True)
+    # save_image(noise, os.path.join(base_path, "noise.png"), title="Noise", apply_denorm=False)
+    # save_image(noisy_image, os.path.join(base_path, "noisy_image.png"), title="Noisy Image", apply_denorm=True)
+
+    # # Print value ranges
+    # print("Original range:", image.min().item(), "-", image.max().item())
+    # print("Noise range:", noise.min().item(), "-", noise.max().item())
+    # print("Noisy range:", noisy_image.min().item(), "-", noisy_image.max().item())
+
     return noisy_image
+
+
 
 
 

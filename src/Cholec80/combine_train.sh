@@ -606,15 +606,15 @@
 conda activate dacat
 # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect  random
 # Create a variabe to store experiment name 
-EXPERIMENT_NAME="1_epoch_w28"
-# CORRUPTION_NAME="random"
-PREDICTION_NAME="predicts"
+EXPERIMENT_NAME="smoke_effect_w28"
+CORRUPTION_NAME="gaussian_noise"
+PREDICTION_NAME="gn_10_w28_predits"
 
 
 # Define log file location
 LOG_PATH="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME"
 LOG_FILE="$LOG_PATH/log_file.txt"
-# LOG_FILE="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME/log_file.txt"
+LOG_FILE="/home/santhi/Documents/DACAT/src/Cholec80/results/$EXPERIMENT_NAME/log_file.txt"
 
 # Create log file if it doesn't exist
 mkdir -p "$LOG_PATH"
@@ -636,52 +636,52 @@ cd /home/santhi/Documents/DACAT/src/Cholec80/train_scripts
 
 # Step 1
 # train/val/test: cuhk 32/8/40; cuhknotest 32/8/0; cuhk4040; 40/0/40
-echo "Starting Step 1....."
+# echo "Starting Step 1....."
 
 # # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect
 
-python3 train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 28 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name $EXPERIMENT_NAME --step_1 phase_1 --step 1 --epochs 1    #--corruption  #300
+# python3 train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 28 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name $EXPERIMENT_NAME --step_1 phase_1 --step 1 --epochs 10  --corruption $CORRUPTION_NAME  #300
 
-if [ $? -ne 0 ]; then
-    echo "Step 1 failed. Exiting."
-    exit 1
-fi
-echo "Step 1 completed successfully."
+# if [ $? -ne 0 ]; then
+#     echo "Step 1 failed. Exiting."
+#     exit 1
+# fi
+# echo "Step 1 completed successfully."
 
-echo "Logged step 1 complete at $(date)"
-
-
-echo "Starting Step 2..."
+# echo "Logged step 1 complete at $(date)"
 
 
-## Step 2
-python3 train_longshort.py phase --split cuhk4040 --backbone convnextv2 --workers 28 --seq_len 64 --lr 1e-5 --random_seed --trial_name DACAT --experiment_name $EXPERIMENT_NAME --step_1 phase_1 --step_2 phase_2 --step 2 --epochs 1 #--corruption #30 
-
-if [ $? -ne 0 ]; then
-    echo "Step 2 failed. Exiting."
-    exit 1
-fi
-echo "Step 2 completed successfully."
-
-echo "Logged step 2 complete at $(date)"
+# echo "Starting Step 2..."
 
 
-echo "Starting Step 3....."
-conda activate dacat #pytorch1_13
+# ## Step 2
+# python3 train_longshort.py phase --split cuhk4040 --backbone convnextv2 --workers 28 --seq_len 64 --lr 1e-5 --random_seed --trial_name DACAT --experiment_name $EXPERIMENT_NAME --step_1 phase_1 --step_2 phase_2 --step 2 --epochs 10 --corruption $CORRUPTION_NAME #30 
 
-export CUDA_VISIBLE_DEVICES=0
+# if [ $? -ne 0 ]; then
+#     echo "Step 2 failed. Exiting."
+#     exit 1
+# fi
+# echo "Step 2 completed successfully."
 
-python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name $EXPERIMENT_NAME --step_1 phase_2 --step_3 $PREDICTION_NAME --step 3 # .../checkpoint_best_acc.pth.tar
+# echo "Logged step 2 complete at $(date)"
 
 
-if [ $? -ne 0 ]; then
-    echo "Step 3 failed. Exiting."
-    exit 1
-fi
-echo "Step 3 completed successfully."
+# echo "Starting Step 3....."
+# conda activate dacat #pytorch1_13
 
-echo "Logged step 3 complete at $(date)"
+# export CUDA_VISIBLE_DEVICES=0
+
+# python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
+#      --resume 1 --experiment_name $EXPERIMENT_NAME --corruption $CORRUPTION_NAME --step_1 phase_2 --step_3 $PREDICTION_NAME --step 3 # .../checkpoint_best_acc.pth.tar
+
+
+# if [ $? -ne 0 ]; then
+#     echo "Step 3 failed. Exiting."
+#     exit 1
+# fi
+# echo "Step 3 completed successfully."
+
+# echo "Logged step 3 complete at $(date)"
 
 
 echo "Starting Step 4....."
