@@ -181,6 +181,8 @@ def apply_defocus_blur(image, kernel_size=15):
         batch_size, timesteps, channels, height, width = image.shape
         image = image.view(-1, channels, height, width)  # Flatten batch & time
 
+    original_tensor = image.clone()
+
     # Convert to (H, W, C) format for OpenCV
     image_np = image.permute(0, 2, 3, 1).cpu().numpy()  # Shape: (B*T, H, W, C)
 
@@ -193,6 +195,54 @@ def apply_defocus_blur(image, kernel_size=15):
     # Reshape back if input was 5D
     if is_batched:
         blurred_tensor = blurred_tensor.view(batch_size, timesteps, channels, height, width)
+
+    #Addign blur effect with a particular strength
+    strength = 0.5
+    blurred_tensor = blurred_tensor * strength + original_tensor * (1 - strength)
+    
+
+    # ------------------ Visualization Block (non-invasive) ------------------
+
+    def to_numpy(img_tensor, denorm = True):
+        img = img_tensor.detach().cpu()
+        if img.dim() == 5:
+            img = img[0, 0]
+        elif img.dim() == 4:
+            img = img[0]  # Take first image in batch
+
+        # print("Tensor stats:")
+        # print("  Shape:", img.shape)
+        # print("  Min:", img.min().item())
+        # print("  Max:", img.max().item())
+        # print("  Dtype:", img.dtype)
+
+        
+        # ✅ Apply ImageNet denormalization
+        if denorm and img.shape[0] == 3:
+            mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+            std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+            img = img * std + mean
+
+
+        img = img.permute(1, 2, 0).numpy()
+        img = (img * 255).clip(0, 255).astype(np.uint8)
+        return img
+        
+
+    def save_image(img_np, path, title="Image"):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        plt.imshow(img_np)
+        plt.title(title)
+        plt.axis('off')
+        plt.savefig(path, bbox_inches='tight')
+        plt.close()
+
+    # Paths
+    base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check_db"
+    save_image(to_numpy(original_tensor, denorm=True), os.path.join(base_path, "original_image_defocus_blur.png"), title="Original Image")
+    save_image(to_numpy(blurred_tensor, denorm = True), os.path.join(base_path, "defocus_blurred_image.png"), title="Defocus Blurred Image")
+
+    # -----------------------------------------------------------------------
 
     return blurred_tensor
 
