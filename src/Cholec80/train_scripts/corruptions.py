@@ -359,80 +359,87 @@ def generate_perlin_noise(height, width, scale=10, intensity=0.5):
     return perlin_noise
 
 # Function to add realistic corruption (smoke effect)
-def add_smoke_effect(image, intensity=0.7):
+def add_smoke_effect(image, intensity=0.5):
     """
     Apply a realistic smoke effect to an image tensor while handling different tensor shapes.
-
-    Expected Input Shapes:
-    - [C, H, W] → Single Image
-    - [B, C, H, W] → Batch of Images
-    - [B, S, C, H, W] → Batch with Sequence Length (Fix Applied)
     """
 
-    # Ensure input is a tensor
+    # --- Original Code (unchanged) ---
     if not isinstance(image, torch.Tensor):
         raise TypeError("Input image must be a PyTorch tensor")
-
-    # Ensure intensity is a valid float
     if intensity is None:
         raise ValueError("Error: 'intensity' must be a valid float value.")
 
-    # Move image to the correct device
     image = image.to(device).clone()
-
-    # Handle 5D tensor (Batch, Sequence, Channels, Height, Width)
     is_sequence = False
     if image.dim() == 5:  
-        # print(f"Received a 5D tensor with shape: {image.shape}")
         batch_size, seq_len, channels, height, width = image.shape
-        image = image.view(batch_size * seq_len, channels, height, width)  # Flatten the sequence dimension
-        is_sequence = True  # Track that this was a sequence
+        image = image.view(batch_size * seq_len, channels, height, width)
+        is_sequence = True
 
-    # Handle 4D tensor (Batch, Channels, Height, Width)
     if image.dim() == 4:
-        # print(f"Processing batch of images with shape: {image.shape}")
         batch_size, channels, height, width = image.shape
-        image_np = image.permute(0, 2, 3, 1).cpu().numpy()  # Convert to (B, H, W, C)
+        image_np = image.permute(0, 2, 3, 1).cpu().numpy()
     else:
-        # Handle single image (3D tensor: [C, H, W])
-        # print(f"Processing single image with shape: {image.shape}")
-        image_np = image.permute(1, 2, 0).cpu().numpy()  # Convert to (H, W, C)
+        image_np = image.permute(1, 2, 0).cpu().numpy()
 
     h, w = image_np.shape[-3:-1]
-
-    # Generate Perlin noise for smoke
     noise_pattern = generate_perlin_noise(h, w, scale=50, intensity=intensity)
-
-    # Convert to 3 channels and apply Gaussian blur for a natural effect
     noise_3ch = np.stack([noise_pattern] * 3, axis=-1)
     noise_3ch = gaussian_filter(noise_3ch, sigma=5)
 
-    # **Fix: Ensure noise shape matches image_np (including batch dimension)**
-    if image_np.ndim == 4:  # If batch is present
-        # print(f"Reshaping noise to match batch shape: {image_np.shape}")
-        noise_3ch = np.expand_dims(noise_3ch, axis=0)  # Add batch dimension
-        noise_3ch = np.repeat(noise_3ch, batch_size, axis=0)  # Match batch size
+    if image_np.ndim == 4:
+        noise_3ch = np.expand_dims(noise_3ch, axis=0)
+        noise_3ch = np.repeat(noise_3ch, batch_size, axis=0)
 
-    # Ensure the shape of noise_3ch matches image_np
     assert noise_3ch.shape == image_np.shape, f"Shape mismatch: noise {noise_3ch.shape} vs image {image_np.shape}"
-
-    # Blend noise with the image while keeping original dimensions
     corrupted = cv2.addWeighted(image_np, 1.0 - intensity, noise_3ch, intensity, 0)
     corrupted = np.clip(corrupted, 0, 1)
 
-    # Convert back to tensor and reshape if necessary
-    corrupted_tensor = torch.from_numpy(corrupted).permute(0, 3, 1, 2).to(device).float()  # Back to (B, C, H, W)
+    corrupted_tensor = torch.from_numpy(corrupted).permute(0, 3, 1, 2).to(device).float()
 
-    # **Fix: Ensure final output is in [B, 3, H, W]**
     if corrupted_tensor.shape[1] != 3:
-        # print(f"Fixing incorrect channel count: {corrupted_tensor.shape[1]} → 3")
-        corrupted_tensor = corrupted_tensor[:, :3, :, :]  # Ensure only 3 channels
+        corrupted_tensor = corrupted_tensor[:, :3, :, :]
 
-    # If input was 5D, restore sequence shape
     if is_sequence:
         corrupted_tensor = corrupted_tensor.view(batch_size // seq_len, seq_len, 3, height, width)
 
+    # --- Visualization Block (non-invasive) ---
+    import matplotlib.pyplot as plt
+    import os
+
+    def to_numpy(tensor, denorm=True):
+        img = tensor.detach().cpu()
+        if img.dim() == 5:
+            img = img[0, 0]
+        elif img.dim() == 4:
+            img = img[0]
+
+        if denorm and img.shape[0] == 3:
+            mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+            std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+            img = img * std + mean
+
+        img_np = img.permute(1, 2, 0).numpy()
+        img_np = (img_np * 255).clip(0, 255).astype(np.uint8)
+        return img_np
+
+    def save_image(img_np, path, title="Image"):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        plt.imshow(img_np)
+        plt.title(title)
+        plt.axis('off')
+        plt.savefig(path, bbox_inches='tight')
+        plt.close()
+
+    # Paths
+    base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check_se"
+    save_image(to_numpy(image), os.path.join(base_path, "original.png"), "Original Image")
+    save_image(to_numpy(corrupted_tensor), os.path.join(base_path, "smoke_corrupted.png"), "Smoke Corrupted")
+
+    # --- Return result ---
     return corrupted_tensor
+
 
 import random
 

@@ -606,8 +606,8 @@
 conda activate dacat
 # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect  random
 # Create a variabe to store experiment name 
-EXPERIMENT_NAME="check_ui"
-CORRUPTION_NAME="uneven_illumination"
+EXPERIMENT_NAME="check_se"
+CORRUPTION_NAME="smoke_effect"
 PREDICTION_NAME="predicts"
 # # Define log file location
 
