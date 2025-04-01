@@ -606,9 +606,10 @@
 conda activate dacat
 # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect  random
 # Create a variabe to store experiment name 
-EXPERIMENT_NAME="smoke_effect_w28"
-CORRUPTION_NAME="gaussian_noise"
-PREDICTION_NAME="gn_10_w28_predits"
+EXPERIMENT_NAME="check_mb"
+CORRUPTION_NAME="motion_blur"
+PREDICTION_NAME="predicts"
+# # Define log file location
 
 
 # Define log file location
@@ -636,19 +637,19 @@ cd /home/santhi/Documents/DACAT/src/Cholec80/train_scripts
 
 # Step 1
 # train/val/test: cuhk 32/8/40; cuhknotest 32/8/0; cuhk4040; 40/0/40
-# echo "Starting Step 1....."
+echo "Starting Step 1....."
 
-# # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect
+# gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect
 
-# python3 train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 28 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name $EXPERIMENT_NAME --step_1 phase_1 --step 1 --epochs 10  --corruption $CORRUPTION_NAME  #300
+python3 train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 28 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name $EXPERIMENT_NAME --step_1 phase_1 --step 1 --epochs 10  --corruption $CORRUPTION_NAME  #300
 
-# if [ $? -ne 0 ]; then
-#     echo "Step 1 failed. Exiting."
-#     exit 1
-# fi
-# echo "Step 1 completed successfully."
+if [ $? -ne 0 ]; then
+    echo "Step 1 failed. Exiting."
+    exit 1
+fi
+echo "Step 1 completed successfully."
 
-# echo "Logged step 1 complete at $(date)"
+echo "Logged step 1 complete at $(date)"
 
 
 # echo "Starting Step 2..."
