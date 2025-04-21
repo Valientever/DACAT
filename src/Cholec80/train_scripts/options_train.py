@@ -97,6 +97,7 @@ parser_phase.add_argument('--freeze',action='store_true',help='freezes bottom 3 
 parser_phase.add_argument('--sliding_window',action='store_true')
 parser_phase.add_argument('--random_seed',action='store_true')
 parser_phase.add_argument('--corruption', type=str, default=None)
+parser_phase.add_argument('--output_csv', type=str, default=None)
 
 # NEW: Add --corrupt argument for phase
 parser_phase.add_argument('--corrupt', type=int, default=-1,

@@ -1,77 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source ~/anaconda3/etc/profile.d/conda.sh
 conda activate dacat
-# Define log file location
-LOG_FILE="/home/santhi/Documents/DACAT/src/Cholec80/results/baseline/log.txt"
-# Create log file if it doesn't exist
-touch $LOG_FILE
 
-# Redirect all output (stdout & stderr) to log file and terminal
-exec > >(tee -a "$LOG_FILE") 2>&1
+ROOT=/home/santhi/Documents/DACAT/src/Cholec80/results
+EVAL=~/Documents/DACAT/src/Cholec80/evaluate_per_video.py
 
-# Add timestamp at the beginning of the log
-echo "Logging started at $(date)"
+# Define (experiment,predict_name,train_cond,eval_cond) per run:
+runs=(
+    "11_epoch_w28 gn_10_w28_predicts clean gaussian_noise"
+    "11_epoch_w28 mb_10_w28_predicts clean motion_blur"
+    "11_epoch_w28 db_10_w28_predicts clean defocus_blur"
+    "11_epoch_w28 ui_10_w28_predicts clean uneven_illumination"
+    "11_epoch_w28 se_10_w28_predicts clean smoke_effect"
+    "11_epoch_w28 r_10_w28_predicts clean random_corruptions"
+    "gaussian_noise_w28 predict_base gaussian_noise gaussian_noise"
+    "motion_blur_w28 predict_base motion_blur motion_blur"
+    "defocus_blur_w28 predict_base defocus_blur defocus_blur"
+    "uneven_illumination_w28 predict_base uneven_illumination uneven_illumination"
+    "smoke_effect_w28 predict_base smoke_effect smoke_effect"
+    "random_w28 predict_base random_corruptions random_corruptions"
+  # … add one line per setting …
+)
 
+for run in "${runs[@]}"; do
+  read exp pred tc ec <<<"$run"
+  outdir="$ROOT/$exp/$pred"
+  mkdir -p "$outdir"
+  outcsv="$outdir/metrics.csv"
 
-export CUDA_VISIBLE_DEVICES=0
+  echo "Running $exp / $pred ⇒ train_condition=$tc eval_condition=$ec"
+  python3 "$EVAL" \
+    --root_dir        "$ROOT" \
+    --experiment_name "$exp" \
+    --predict_name    "$pred" \
+    --output_csv      "$outcsv" \
+    --train_condition "$tc" \
+    --eval_condition  "$ec"
+done
 
-# # cd .../Cholec80/train_scripts
-cd /home/santhi/Documents/DACAT/src/Cholec80/train_scripts
+# Finally, aggregate them:
+agg="$ROOT/all_per_video_metrics.csv"
+echo "video_id,train_condition,eval_condition,metric,score" > "$agg"
+for f in $(printf "%s\n" "${runs[@]}" | awk '{print "'"$ROOT"'/" $1 "/" $2 "/metrics.csv"}'); do
+  [[ -f "$f" ]] && tail -n +2 "$f" >> "$agg"
+done
 
-# Step 1
-# train/val/test: cuhk 32/8/40; cuhknotest 32/8/0; cuhk4040; 40/0/40
-echo "Starting Step 1....."
-
-# # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect
-
-python3 train.py phase --split cuhk --backbone convnextv2 --freeze --workers 4 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name baseline --step_1 phase_1 --step 1 --epochs 300     #--corruption  #300
-
-if [ $? -ne 0 ]; then
-    echo "Step 1 failed. Exiting."
-    exit 1
-fi
-echo "Step 1 completed successfully."
-
-echo "Starting Step 2..."
-
-
-## Step 2
-python3 train_longshort.py phase --split cuhk --backbone convnextv2 --workers 4 --seq_len 64 --lr 1e-5 --random_seed --trial_name DACAT --experiment_name baseline --step_1 phase_1 --step_2 phase_2 --step 2 --epochs 300 #--corruption #30 
-
-if [ $? -ne 0 ]; then
-    echo "Step 2 failed. Exiting."
-    exit 1
-fi
-echo "Step 2 completed successfully."
-
-
-echo "Starting Step 3....."
-conda activate dacat #pytorch1_13
-
-export CUDA_VISIBLE_DEVICES=0
-
-python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name baseline --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
-
-
-if [ $? -ne 0 ]; then
-    echo "Step 3 failed. Exiting."
-    exit 1
-fi
-echo "Step 3 completed successfully."
-
-echo "Starting Step 4....."
-conda activate dacat #pytorch1_13
-cd /home/santhi/Documents/DACAT/src/Cholec80
-
-export CUDA_VISIBLE_DEVICES=0
-
-python3 eval.py --experiment_name baseline --predict_name 'predicts'
-
-
-if [ $? -ne 0 ]; then
-    echo "Step 4 failed. Exiting."
-    exit 1
-fi
-echo "Step 4 completed successfully."
-# # # cp "/home/santhi/Documents/DACAT/src/Cholec80/output/checkpoints/phase/20250112-0858_Step1_cuhk4040Split_lstm_convnextv2_lr0.0001_bs1_seq256_frozen/models/checkpoint_best_acc.pth.tar" "/home/santhi/Documents/DACAT/src/Cholec80/train_scripts/newly_opt_ykx/LongShortNet/long_net_convnextv2.pth.tar"
-
-
+echo "Combined into $agg"

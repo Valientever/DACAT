@@ -122,8 +122,8 @@ def apply_motion_blur(image, kernel_size=15):
         blurred_tensor = blurred_tensor.view(batch_size, timesteps, channels, height, width)
 
     #Addign blur effect with a particular strength
-    strength = 0.7
-    blurred_tensor = blurred_tensor * strength + original_tensor * (1 - strength)
+    # strength = 0.7
+    # blurred_tensor = blurred_tensor * strength + original_tensor * (1 - strength)
     
 
     # ------------------ Visualization Block (non-invasive) ------------------
@@ -195,8 +195,8 @@ def apply_defocus_blur(image, kernel_size=15):
         blurred_tensor = blurred_tensor.view(batch_size, timesteps, channels, height, width)
 
     #Addign blur effect with a particular strength
-    strength = 0.5
-    blurred_tensor = blurred_tensor * strength + original_tensor * (1 - strength)
+    # strength = 0.5
+    # blurred_tensor = blurred_tensor * strength + original_tensor * (1 - strength)
     
 
     # # ------------------ Visualization Block (non-invasive) ------------------
@@ -245,7 +245,7 @@ def apply_defocus_blur(image, kernel_size=15):
     return blurred_tensor
 
 #Ajust illumination
-def uneven_illumination(image, strength=0.1):
+def uneven_illumination(image, strength=0.5):
     # Check if input is 5D (batch + time)
     is_batched = (image.dim() == 5)
     if is_batched:
@@ -294,12 +294,12 @@ def uneven_illumination(image, strength=0.1):
 
     # # ------------------ Visualization Block (non-invasive) ------------------
 
-    def to_numpy(img_tensor, denorm = True):
-        img = img_tensor.detach().cpu()
-        if img.dim() == 5:
-            img = img[0, 0]
-        elif img.dim() == 4:
-            img = img[0]  # Take first image in batch
+    # def to_numpy(img_tensor, denorm = True):
+    #     img = img_tensor.detach().cpu()
+    #     if img.dim() == 5:
+    #         img = img[0, 0]
+    #     elif img.dim() == 4:
+    #         img = img[0]  # Take first image in batch
 
     #     # print("Tensor stats:")
     #     # print("  Shape:", img.shape)
@@ -309,29 +309,29 @@ def uneven_illumination(image, strength=0.1):
 
         
     #     # ✅ Apply ImageNet denormalization
-        if denorm and img.shape[0] == 3:
-            mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
-            std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
-            img = img * std + mean
+    #     if denorm and img.shape[0] == 3:
+    #         mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+    #         std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+    #         img = img * std + mean
 
 
-        img = img.permute(1, 2, 0).numpy()
-        img = (img * 255).clip(0, 255).astype(np.uint8)
-        return img
+    #     img = img.permute(1, 2, 0).numpy()
+    #     img = (img * 255).clip(0, 255).astype(np.uint8)
+    #     return img
         
 
-    def save_image(img_np, path, title="Image"):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        plt.imshow(img_np)
-        plt.title(title)
-        plt.axis('off')
-        plt.savefig(path, bbox_inches='tight')
-        plt.close()
+    # def save_image(img_np, path, title="Image"):
+    #     os.makedirs(os.path.dirname(path), exist_ok=True)
+    #     plt.imshow(img_np)
+    #     plt.title(title)
+    #     plt.axis('off')
+    #     plt.savefig(path, bbox_inches='tight')
+    #     plt.close()
 
-    # # Paths
-    base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check_ui"
-    save_image(to_numpy(original_tensor, denorm=True), os.path.join(base_path, "original_image.png"), title="Original Image")
-    save_image(to_numpy(result_tensor, denorm = True), os.path.join(base_path, "ul_image.png"), title="Uneven Illumination Image")
+    # # # Paths
+    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check_ui"
+    # save_image(to_numpy(original_tensor, denorm=True), os.path.join(base_path, "original_image.png"), title="Original Image")
+    # save_image(to_numpy(result_tensor, denorm = True), os.path.join(base_path, "ul_image.png"), title="Uneven Illumination Image")
 
     # # -----------------------------------------------------------------------
 
@@ -359,7 +359,7 @@ def generate_perlin_noise(height, width, scale=10, intensity=0.5):
     return perlin_noise
 
 # Function to add realistic corruption (smoke effect)
-def add_smoke_effect(image, intensity=0.5):
+def add_smoke_effect(image, intensity=0.7):
     """
     Apply a realistic smoke effect to an image tensor while handling different tensor shapes.
     """
