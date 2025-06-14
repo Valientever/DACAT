@@ -402,7 +402,8 @@ def add_smoke_effect(image, intensity=0.7):
         corrupted_tensor = corrupted_tensor[:, :3, :, :]
 
     if is_sequence:
-        corrupted_tensor = corrupted_tensor.view(batch_size // seq_len, seq_len, 3, height, width)
+        # Fix: Use original batch_size and seq_len instead of division
+        corrupted_tensor = corrupted_tensor.view(batch_size, seq_len, 3, height, width)
 
     # --- Visualization Block (non-invasive) ---
     import matplotlib.pyplot as plt
