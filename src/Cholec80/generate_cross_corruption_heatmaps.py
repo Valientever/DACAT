@@ -107,23 +107,48 @@ def create_cross_corruption_matrix_data(df):
     Current limitation: We only have diagonal comparisons (train=eval corruption).
     This function will:
     1. Place available data on the diagonal
-    2. Add 'clean' baseline comparisons 
+    2. Exclude invalid clean vs clean combinations 
     3. Mark missing cross-corruption combinations
+    4. Use the EXACT order specified by user: Gaussian_noise, Motion_blur, Defocus_blur, Uneven_illumination, Smoke_effect, Random_corruption
     """
     
-    # Get all unique corruptions from the data
-    available_corruptions = sorted(df['train_corruption'].unique())
+    # Define the EXACT order requested by user
+    user_specified_order = [
+        'gaussian_noise',      # Gaussian_noise
+        'motion_blur',         # Motion_blur  
+        'defocus_blur',        # Defocus_blur
+        'uneven_illumination', # Uneven_illumination
+        'smoke_effect',        # Smoke_effect
+        'random_corruptions'   # Random_corruption (50:50)
+    ]
     
-    # Add 'clean' as baseline
-    all_corruptions = ['clean'] + available_corruptions
+    # Get available corruptions from data
+    available_corruptions = list(df['train_corruption'].unique())
+    
+    # Create ordered list: only include corruptions that exist in your data, in the specified order
+    ordered_corruptions = []
+    for specified_corr in user_specified_order:
+        if specified_corr in available_corruptions:
+            ordered_corruptions.append(specified_corr)
+    
+    # Add any remaining corruptions not in the specified order (as fallback)
+    for corr in available_corruptions:
+        if corr not in ordered_corruptions:
+            ordered_corruptions.append(corr)
+    
+    # Add 'clean' at the beginning as baseline
+    all_corruptions = ['clean'] + ordered_corruptions
     
     # Get all metrics
     all_metrics = sorted(df['metric'].unique())
     
-    print(f"🔄 Creating cross-corruption matrix...")
+    print(f"🔄 Creating cross-corruption matrix with USER SPECIFIED order...")
+    print(f"   User specified order: {user_specified_order}")
     print(f"   Available corruptions: {available_corruptions}")
+    print(f"   Final ordered corruptions: {ordered_corruptions}")
+    print(f"   Full matrix order: {all_corruptions}")
     print(f"   Full matrix size: {len(all_corruptions)} x {len(all_corruptions)}")
-    print(f"   Note: Only diagonal elements have real data")
+    print(f"   Note: Only diagonal elements have real data, clean-clean excluded")
     
     # Create full matrix structure
     full_data = []
@@ -133,6 +158,10 @@ def create_cross_corruption_matrix_data(df):
         
         for eval_corruption in all_corruptions:
             for train_corruption in all_corruptions:
+                
+                # EXCLUDE the invalid clean vs clean combination
+                if train_corruption == 'clean' and eval_corruption == 'clean':
+                    continue  # Skip this invalid combination
                 
                 # Check if we have real data for this combination
                 real_data = metric_df[
@@ -153,28 +182,15 @@ def create_cross_corruption_matrix_data(df):
                         'data_type': 'real'
                     })
                 else:
-                    # Add placeholder for missing data
-                    if train_corruption == eval_corruption == 'clean':
-                        # Clean vs clean = no effect
-                        effect_size = 0.0
-                        p_value = 1.0
-                        significance = False
-                        data_type = 'baseline'
-                    else:
-                        # Missing cross-corruption data
-                        effect_size = np.nan
-                        p_value = np.nan
-                        significance = False
-                        data_type = 'missing'
-                    
+                    # Missing cross-corruption data
                     full_data.append({
                         'train_corruption': train_corruption,
                         'eval_corruption': eval_corruption,
                         'metric': metric,
-                        'effect_size': effect_size,
-                        'p_value': p_value,
-                        'significance': significance,
-                        'data_type': data_type
+                        'effect_size': np.nan,
+                        'p_value': np.nan,
+                        'significance': False,
+                        'data_type': 'missing'
                     })
     
     full_df = pd.DataFrame(full_data)
@@ -185,6 +201,7 @@ def create_cross_corruption_matrix_data(df):
     
     print(f"   Real data points: {real_data_count}")
     print(f"   Missing data points: {missing_data_count}")
+    print(f"   Clean-clean combination excluded (invalid)")
     print(f"   Data availability: {real_data_count/(real_data_count+missing_data_count)*100:.1f}%")
     
     return full_df, all_corruptions, all_metrics

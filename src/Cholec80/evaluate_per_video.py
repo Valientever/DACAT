@@ -79,7 +79,20 @@ def relaxed_metrics(gt, pred, fps=1):
         pr.append((tp * 100 / sumP) if sumP > 0 else np.nan)
         rc.append(tp * 100 / sumG)
     acc = np.sum(upd == 0) / n * 100
-    return np.array(j), np.array(pr), np.array(rc), acc
+    
+    # Convert to numpy arrays for clamping
+    j_arr = np.array(j)
+    pr_arr = np.array(pr)
+    rc_arr = np.array(rc)
+    
+    # **CRITICAL FIX**: Clamp values > 100% to 100%
+    # This matches the MATLAB code behavior: index = find(prec>100); prec(index)=100;
+    j_arr[j_arr > 100] = 100
+    pr_arr[pr_arr > 100] = 100
+    rc_arr[rc_arr > 100] = 100
+    acc = min(acc, 100)  # Also clamp accuracy
+    
+    return j_arr, pr_arr, rc_arr, acc
 
 def main():
     p = argparse.ArgumentParser(description="Per‑video relaxed metrics")
