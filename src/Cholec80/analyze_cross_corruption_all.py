@@ -3,7 +3,18 @@
 analyze_cross_corruption_all.py
 
 Comprehensive cross-corruption statistical significance testing.
-Uses the EXACT SAME Wilcoxon test implementation as analyze_test.py to ensure consistent p-values.
+Tests ALL 49 train-eval combinations against each other using Wilcoxon signed-rank test.
+
+This script performs pairwise comparisons between all train-eval combinations:
+- For each evaluation condition, compare all training conditions pairwise
+- Generate p-values and effect sizes for all combinations
+- Create a complete statistical significance matrix
+
+Usage:
+  python analyze_cross_corruption_all.py \
+    --input all_per_video_metrics.csv \
+    --log   cross_corruption_statistical_log.txt \
+    [--alpha 0.05]
 """
 import argparse
 import pandas as pd
@@ -14,7 +25,7 @@ import sys
 
 def parse_args():
     p = argparse.ArgumentParser(
-        description="Comprehensive cross-corruption statistical analysis (using existing Wilcoxon implementation)"
+        description="Comprehensive cross-corruption statistical analysis"
     )
     p.add_argument('-i','--input', required=True,
                    help='CSV with columns: video_id,train_condition,eval_condition,metric,score')
@@ -43,39 +54,15 @@ def get_conditions_and_metrics(df):
     
     return train_conditions, eval_conditions, metrics
 
-def wilcoxon_pairwise_test(vals1, vals2, alpha):
-    """
-    EXACT SAME Wilcoxon test implementation as analyze_test.py
-    This ensures consistent p-values across all analyses.
-    """
-    # Use the exact same approach as analyze_test.py line 63-65
-    med_1 = pd.Series(vals1).median()
-    med_2 = pd.Series(vals2).median()
-    diff = med_2 - med_1
-    
-    # Use the exact same Wilcoxon call as analyze_test.py line 64
-    stat, p = wilcoxon(vals1, vals2)
-    sig = p < alpha
-    
-    return {
-        'median_1': med_1,
-        'median_2': med_2, 
-        'difference': diff,
-        'wilcoxon_stat': stat,
-        'p_value': p,
-        'significance': sig
-    }
-
 def run_pairwise_tests(df, train_conditions, eval_conditions, metrics, alpha, logf):
     """
-    Run pairwise comparisons using the EXACT SAME statistical method as analyze_test.py
+    Run pairwise comparisons for all train-eval combinations.
+    For each evaluation condition and metric, compare all training conditions pairwise.
     """
     
     logf.write("# Comprehensive Cross-Corruption Statistical Analysis\n")
-    logf.write("# Using SAME Wilcoxon implementation as analyze_test.py\n")
     logf.write(f"Alpha = {alpha}\n")
-    logf.write(f"Total training conditions: {len(train_conditions)}\n")
-    logf.write(f"Total evaluation conditions: {len(eval_conditions)}\n")
+    logf.write(f"Total combinations tested: {len(train_conditions) * len(eval_conditions)}\n")
     logf.write(f"Pairwise comparisons per eval condition: {len(list(combinations(train_conditions, 2)))}\n\n")
 
     all_results = []
@@ -85,19 +72,19 @@ def run_pairwise_tests(df, train_conditions, eval_conditions, metrics, alpha, lo
         logf.write(f"EVALUATION CONDITION: {eval_cond}\n")
         logf.write(f"{'='*60}\n\n")
         
-        # Get data for this evaluation condition - SAME as analyze_test.py
+        # Get data for this evaluation condition
         eval_data = df[df['eval_condition'] == eval_cond]
         
         for metric in metrics:
             logf.write(f"--- Metric: {metric.upper()} ---\n")
             
-            # Get data for this metric - SAME as analyze_test.py
+            # Get data for this metric
             metric_data = eval_data[eval_data['metric'] == metric]
             
-            # Pivot to get train conditions as columns - SAME as analyze_test.py
+            # Pivot to get train conditions as columns
             pivot_data = metric_data.pivot(index='video_id', columns='train_condition', values='score')
             
-            # Check which training conditions have data
+            # Check which training conditions have data for this eval condition
             available_trains = [tc for tc in train_conditions if tc in pivot_data.columns and not pivot_data[tc].isna().all()]
             
             if len(available_trains) < 2:
@@ -107,53 +94,73 @@ def run_pairwise_tests(df, train_conditions, eval_conditions, metrics, alpha, lo
             logf.write(f"  Available training conditions: {available_trains}\n")
             logf.write(f"  Pairwise comparisons: {len(list(combinations(available_trains, 2)))}\n\n")
             
-            # Perform all pairwise comparisons using SAME method as analyze_test.py
+            # Perform all pairwise comparisons
+            pairwise_results = []
+            
             for train1, train2 in combinations(available_trains, 2):
-                # Get values - SAME approach as analyze_test.py lines 61-62
-                clean_vals = pivot_data[train1].values  # equivalent to clean_vals in analyze_test.py
-                corr_vals = pivot_data[train2].values   # equivalent to corr_vals in analyze_test.py
+                # Get values for both training conditions
+                values1 = pivot_data[train1].dropna()
+                values2 = pivot_data[train2].dropna()
                 
-                # Remove NaN values exactly like analyze_test.py would
-                clean_vals = clean_vals[~pd.isna(clean_vals)]
-                corr_vals = corr_vals[~pd.isna(corr_vals)]
+                # Find common videos (intersection)
+                common_videos = values1.index.intersection(values2.index)
                 
-                if len(clean_vals) < 5 or len(corr_vals) < 5:
-                    logf.write(f"    {train1} vs {train2}: Insufficient data\n")
+                if len(common_videos) < 5:  # Minimum sample size
+                    logf.write(f"    {train1} vs {train2}: Insufficient paired data ({len(common_videos)} videos)\n")
                     continue
                 
-                # Use EXACT SAME statistical calculation as analyze_test.py
+                # Get paired values
+                vals1_paired = values1[common_videos].values
+                vals2_paired = values2[common_videos].values
+                
+                # Calculate statistics
+                median1 = np.median(vals1_paired)
+                median2 = np.median(vals2_paired)
+                difference = median2 - median1  # train2 - train1
+                
+                # Wilcoxon signed-rank test
                 try:
-                    stats_result = wilcoxon_pairwise_test(clean_vals, corr_vals, alpha)
+                    stat, p_value = wilcoxon(vals1_paired, vals2_paired)
+                    significance = p_value < alpha
                     
                     result = {
                         'eval_condition': eval_cond,
                         'metric': metric,
                         'train_condition_1': train1,
                         'train_condition_2': train2,
-                        'median_1': stats_result['median_1'],
-                        'median_2': stats_result['median_2'],
-                        'difference': stats_result['difference'],
-                        'effect_size': stats_result['difference'],
-                        'pairs': len(clean_vals),  # Same as analyze_test.py line 66
-                        'wilcoxon_stat': stats_result['wilcoxon_stat'],
-                        'p_value': stats_result['p_value'],
-                        'significance': stats_result['significance'],
-                        'direction': 'train2_better' if stats_result['difference'] > 0 else 'train1_better' if stats_result['difference'] < 0 else 'neutral'
+                        'median_1': median1,
+                        'median_2': median2,
+                        'difference': difference,
+                        'effect_size': difference,  # Simple effect size (median difference)
+                        'pairs': len(common_videos),
+                        'wilcoxon_stat': stat,
+                        'p_value': p_value,
+                        'significance': significance,
+                        'direction': 'train2_better' if difference > 0 else 'train1_better' if difference < 0 else 'neutral'
                     }
                     
+                    pairwise_results.append(result)
                     all_results.append(result)
                     
                     # Log this comparison
-                    direction_symbol = "📈" if stats_result['difference'] > 0 else "📉" if stats_result['difference'] < 0 else "➡️"
-                    sig_symbol = "✅" if stats_result['significance'] else "❌"
+                    direction_symbol = "📈" if difference > 0 else "📉" if difference < 0 else "➡️"
+                    sig_symbol = "✅" if significance else "❌"
                     
                     logf.write(f"    {train1} vs {train2}: {direction_symbol} {sig_symbol}\n")
-                    logf.write(f"      Medians: {stats_result['median_1']:.4f} vs {stats_result['median_2']:.4f} (diff: {stats_result['difference']:+.4f})\n")
-                    logf.write(f"      p-value: {stats_result['p_value']:.6f} (n={len(clean_vals)})\n")
+                    logf.write(f"      Medians: {median1:.4f} vs {median2:.4f} (diff: {difference:+.4f})\n")
+                    logf.write(f"      p-value: {p_value:.6f} (n={len(common_videos)})\n")
                     
                 except Exception as e:
                     logf.write(f"    {train1} vs {train2}: ERROR - {str(e)}\n")
                     continue
+            
+            # Summary for this metric
+            if pairwise_results:
+                significant_pairs = sum(1 for r in pairwise_results if r['significance'])
+                logf.write(f"\n  📊 Summary for {metric}:\n")
+                logf.write(f"    Total comparisons: {len(pairwise_results)}\n")
+                logf.write(f"    Significant differences: {significant_pairs}\n")
+                logf.write(f"    Significance rate: {significant_pairs/len(pairwise_results)*100:.1f}%\n")
             
             logf.write("\n")
         
@@ -219,7 +226,6 @@ def main():
     train_conditions, eval_conditions, metrics = get_conditions_and_metrics(df)
 
     print(f"Starting comprehensive cross-corruption analysis...")
-    print(f"Using EXACT SAME Wilcoxon implementation as analyze_test.py for consistency")
     print(f"This will perform {len(train_conditions)*(len(train_conditions)-1)/2} pairwise comparisons")
     print(f"across {len(eval_conditions)} evaluation conditions and {len(metrics)} metrics")
     

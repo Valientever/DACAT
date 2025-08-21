@@ -16,14 +16,16 @@ import argparse
 
 def parse_comprehensive_statistical_log(file_path):
     """
-    Parse the comprehensive cross-corruption statistical log using the EXACT SAME approach
-    as the existing parse_statistical_log function to ensure consistency.
+    Parse the comprehensive cross-corruption statistical log that contains ALL pairwise comparisons.
+    
+    Returns:
+        pandas.DataFrame with columns: eval_condition, train_1, train_2, metric, p_value, effect_size, etc.
     """
     
     with open(file_path, 'r') as f:
         lines = f.readlines()
     
-    # Extract alpha level using SAME approach as existing code
+    # Extract alpha level
     alpha = 0.05
     for line in lines:
         if 'Alpha' in line:
@@ -36,7 +38,7 @@ def parse_comprehensive_statistical_log(file_path):
     current_eval_condition = None
     current_metric = None
     
-    print("🔍 Parsing comprehensive statistical log using SAME method as existing code...")
+    print("🔍 Parsing comprehensive statistical log...")
     
     i = 0
     while i < len(lines):
@@ -47,20 +49,21 @@ def parse_comprehensive_statistical_log(file_path):
             current_eval_condition = line.split('EVALUATION CONDITION:')[1].strip()
             print(f"   Processing eval condition: {current_eval_condition}")
         
-        # Check for metric using SAME pattern as existing code
+        # Check for metric
         elif '--- Metric:' in line and '---' in line:
             current_metric = line.split('--- Metric:')[1].split('---')[0].strip().lower()
         
-        # Parse comparison lines using SAME approach as existing Wilcoxon output format
-        elif ' vs ' in line and 'Medians:' in lines[i+1] if i+1 < len(lines) else False:
-            comparison_part = line.split(':')[0].strip() if ':' in line else line.strip()
+        # Check for comparison lines
+        elif ' vs ' in line and ':' in line and current_eval_condition and current_metric:
+            # Extract comparison
+            comparison_part = line.split(':')[0].strip()
             
-            # Look for the next lines with Medians and p-value (SAME format as analyze_test.py output)
+            # Look for the next two lines with Medians and p-value
             if i + 2 < len(lines):
                 median_line = lines[i + 1].strip()
                 pvalue_line = lines[i + 2].strip()
                 
-                # Parse using SAME regex patterns as existing code
+                # Parse medians line: "Medians: 96.4174 vs 95.8146 (diff: -0.6029)"
                 if median_line.startswith('Medians:'):
                     median_match = re.search(r'Medians:\s*([\d.]+)\s+vs\s+([\d.]+)\s+\(diff:\s*([-+]?[\d.]+)\)', median_line)
                     if median_match:
@@ -68,7 +71,7 @@ def parse_comprehensive_statistical_log(file_path):
                         median_2 = float(median_match.group(2))
                         effect_size = float(median_match.group(3))
                         
-                        # Parse p-value using SAME approach
+                        # Parse p-value line: "p-value: 0.426361 (n=40)"
                         if pvalue_line.startswith('p-value:'):
                             pvalue_match = re.search(r'p-value:\s*([\d.]+)', pvalue_line)
                             n_match = re.search(r'n=(\d+)', pvalue_line)
@@ -76,13 +79,12 @@ def parse_comprehensive_statistical_log(file_path):
                             if pvalue_match:
                                 p_value = float(pvalue_match.group(1))
                                 pairs = int(n_match.group(1)) if n_match else 40
-                                significance = p_value < alpha  # SAME significance test
+                                significance = p_value < alpha
                                 
-                                # Parse the comparison using SAME approach
+                                # Parse the comparison "train_1 vs train_2"
                                 if ' vs ' in comparison_part:
                                     train_1, train_2 = comparison_part.split(' vs ')
                                     
-                                    # Store in SAME format as existing statistical logs
                                     data_rows.append({
                                         'eval_condition': current_eval_condition,
                                         'train_1': train_1.strip(),
@@ -92,7 +94,7 @@ def parse_comprehensive_statistical_log(file_path):
                                         'median_1': median_1,
                                         'median_2': median_2,
                                         'effect_size': effect_size,
-                                        'wilcoxon_stat': 0.0,  # Same as existing format
+                                        'wilcoxon_stat': 0.0,  # Not available in this format
                                         'p_value': p_value,
                                         'significance': significance,
                                         'alpha': alpha
@@ -102,7 +104,7 @@ def parse_comprehensive_statistical_log(file_path):
     
     df = pd.DataFrame(data_rows)
     
-    print(f"✅ Extracted {len(df)} pairwise comparisons using consistent parsing method")
+    print(f"✅ Extracted {len(df)} pairwise comparisons from comprehensive log")
     if len(df) > 0:
         print(f"   Eval conditions: {sorted(df['eval_condition'].unique())}")
         print(f"   Training conditions: {sorted(set(df['train_1'].unique()) | set(df['train_2'].unique()))}")
