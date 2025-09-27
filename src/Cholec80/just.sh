@@ -3,7 +3,8 @@ set -euo pipefail
 source ~/anaconda3/etc/profile.d/conda.sh
 conda activate dacat
 
-ROOT=/home/santhi/Documents/DACAT/src/Cholec80/results
+ROOT=/home/santhi/Documents/DACAT/src/Cholec80/results_HeiChole
+# os.mkdir -p "$ROOT"
 EVAL=~/Documents/DACAT/src/Cholec80/evaluate_per_video.py
 
 # Define (experiment,predict_name,train_cond,eval_cond) per run:

@@ -16,29 +16,29 @@ cd /home/santhi/Documents/DACAT/src/Cholec80/train_scripts
 
 ## Step 1
 # train/val/test: cuhk 32/8/40; cuhknotest 32/8/0; cuhk4040; 40/0/40
-echo "Starting Step 1....."
+# echo "Starting Step 1....."
 
-# gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect
+# # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect
 
-python3 train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 4 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name noise_1 --corruption 'gaussian_noise' --step_1 phase_1 --step 1 --epochs 10 #--corruption  #300
-if [ $? -ne 0 ]; then
-    echo "Step 1 failed. Exiting."
-    exit 1
-fi
-echo "Step 1 completed successfully."
+# python3 train.py phase --split cuhk4040 --backbone convnextv2 --freeze --workers 4 --seq_len 256 --lr 1e-4 --random_seed --trial_name Step1 --experiment_name noise_1 --corruption 'gaussian_noise' --step_1 phase_1 --step 1 --epochs 10 #--corruption  #300
+# if [ $? -ne 0 ]; then
+#     echo "Step 1 failed. Exiting."
+#     exit 1
+# fi
+# echo "Step 1 completed successfully."
 
-echo "Starting Step 2..."
+# echo "Starting Step 2..."
 
 
-# Step 2
-# You need to use trained model in Step 1, and saved in .../train_scripts/newly_opt_ykx/LongShortNet/long_net_convnextv2.pth.tar
-python3 train_longshort.py phase --split cuhk4040 --backbone convnextv2 --workers 4 --seq_len 64 --lr 1e-5 --random_seed --trial_name DACAT --experiment_name noise_1 --corruption 'gaussian_noise'  --step_1 phase_1 --step_2 phase_2 --step 2 --epochs 10 #--corruption #30 
+# # Step 2
+# # You need to use trained model in Step 1, and saved in .../train_scripts/newly_opt_ykx/LongShortNet/long_net_convnextv2.pth.tar
+# python3 train_longshort.py phase --split cuhk4040 --backbone convnextv2 --workers 4 --seq_len 64 --lr 1e-5 --random_seed --trial_name DACAT --experiment_name noise_1 --corruption 'gaussian_noise'  --step_1 phase_1 --step_2 phase_2 --step 2 --epochs 10 #--corruption #30 
 
-if [ $? -ne 0 ]; then
-    echo "Step 2 failed. Exiting."
-    exit 1
-fi
-echo "Step 2 completed successfully."
+# if [ $? -ne 0 ]; then
+#     echo "Step 2 failed. Exiting."
+#     exit 1
+# fi
+# echo "Step 2 completed successfully."
 
 
 echo "Starting Step 3....."
@@ -47,7 +47,7 @@ conda activate dacat #pytorch1_13
 export CUDA_VISIBLE_DEVICES=0
 
 python3 save_predictions_onlinev2_longshort.py phase --split cuhk --backbone convnextv2 --seq_len 1 \
-     --resume 1 --experiment_name noise_1 --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
+     --resume 1 --experiment_name test_1 --step_1 phase_2 --step_3 predicts --step 3 # .../checkpoint_best_acc.pth.tar
 
 
 if [ $? -ne 0 ]; then

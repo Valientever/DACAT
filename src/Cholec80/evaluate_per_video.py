@@ -121,9 +121,9 @@ def main():
         eval_cond = eval_cond[:-4]
 
     records = []
-    for vid in range(41, 81):
-        gt_path   = os.path.join(gt_dir,   f"video{vid}-phase.txt")
-        pred_path = os.path.join(pred_dir, f"video{vid}-phase.txt")
+    for vid in range(1, 25):
+        gt_path   = os.path.join(gt_dir,   f"video{vid:02d}-phase.txt")
+        pred_path = os.path.join(pred_dir, f"video{vid:02d}-phase.txt")
         if not os.path.isfile(gt_path) or not os.path.isfile(pred_path):
             print(f"⚠️  Missing video {vid}, skipping")
             continue

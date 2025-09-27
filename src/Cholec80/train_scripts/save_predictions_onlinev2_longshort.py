@@ -47,11 +47,12 @@ if opts.only_temporal:
 else:
 	# _,_,test_set = prepare_dataset(opts)
 	data_folder = '../data/frames_1fps/'
+	# set_trace()
 	op_paths = [os.path.join(data_folder,op) for op in os.listdir(data_folder)]
 	if opts.split=='cuhk':
 		op_paths.sort(key=os.path.basename)
 		test_set  = []
-		for op_path in op_paths[40:80]:
+		for op_path in op_paths[15:16]:
 			ID = os.path.basename(op_path)
 			if os.path.isdir(op_path):
 				test_set.append((ID,op_path))
@@ -100,7 +101,11 @@ with torch.no_grad():
   
 		for _ in tqdm(range(len(offline_cholec80_test))):
 			
-			data, target = next(offline_cholec80_test)
+			result = next(offline_cholec80_test)
+			if result is None:
+				print(f"✅ Finished processing video {ID} early (reached end of frames)")
+				break
+			data, target = result
 			data, target = prepare_batch(data,target)
 
 			if opts.corruption is not None:#########change this to corruption

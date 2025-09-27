@@ -262,8 +262,19 @@ class Cholec80Test():
 		self.targetbank = []
   
 	def __next__(self):
+		# **FIX: Check if we've reached the end of available frames**
+		if self.idx >= len(self.target):
+			print(f"✅ Reached end of target annotations at frame {self.idx}")
+			return None
+			
+		try:
+			img, target = self.load_frame(self.idx,self.opts)
+		except StopIteration as e:
+			# End of available frames reached
+			print(f"✅ Completed video processing: {str(e)}")
+			return None
+			
 		# print('this is being called next line 264: ',self.idx)
-		img, target = self.load_frame(self.idx,self.opts)
 		# if self.idx == 0:
 		# 	self.imagebank = [img] * self.seq_len
 		# 	self.targetbank = [target] * self.seq_len
@@ -290,9 +301,18 @@ class Cholec80Test():
 		
 
 		file_name = os.path.join(self.image_path,'{:08d}.{}'.format(index,self.ext))
+		
+		# **FIX: Check if file exists before trying to read it**
+		if not os.path.exists(file_name):
+			# Stop processing when we reach missing frames (end of video)
+			raise StopIteration(f"Reached end of video at frame {index}")
+		
 		img = cv2.imread(file_name, cv2.IMREAD_COLOR)
-		# print(f'image type :{type(img)}')
-		# print(f'image shape: {img.shape}')
+		
+		# **FIX: Additional check in case imread still fails**
+		if img is None:
+			raise StopIteration(f"Failed to load image at frame {index}")
+			
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)    # still NumPy
 		assert img is not None, f"Error: Could not load image at {file_name}"
 
