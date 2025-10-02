@@ -52,7 +52,7 @@ else:
 	if opts.split=='cuhk':
 		op_paths.sort(key=os.path.basename)
 		test_set  = []
-		for op_path in op_paths[15:16]:
+		for op_path in op_paths[0:25]:
 			ID = os.path.basename(op_path)
 			if os.path.isdir(op_path):
 				test_set.append((ID,op_path))
@@ -110,6 +110,7 @@ with torch.no_grad():
 
 			if opts.corruption is not None:#########change this to corruption
 				data = corruptions.corruption(data,opts.corruption)
+				# print('corruption applied')
 			else:
 				data = data
 

@@ -45,26 +45,26 @@ def add_gaussian_noise(image, mean=0, std=0.5):
         noisy_image = torch.clamp(noisy_image, 0, 255).to(torch.uint8)
 
     # --- Utility to convert tensor to numpy for visualization ---
-    # def to_numpy(img_tensor, apply_denorm=True):
-    #     if img_tensor.dim() == 5:
-    #         img_tensor = img_tensor[0, 0]  # (C, H, W)
-    #     elif img_tensor.dim() == 4:
-    #         img_tensor = img_tensor[0]     # (C, H, W)
+    def to_numpy(img_tensor, apply_denorm=True):
+        if img_tensor.dim() == 5:
+            img_tensor = img_tensor[0, 0]  # (C, H, W)
+        elif img_tensor.dim() == 4:
+            img_tensor = img_tensor[0]     # (C, H, W)
 
-    #     img_tensor = img_tensor.detach().cpu()
+        img_tensor = img_tensor.detach().cpu()
 
-    # #     # Denormalize if needed (assume ImageNet mean/std)
-    #     if apply_denorm and torch.is_floating_point(img_tensor) and img_tensor.shape[0] == 3:
-    #         mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
-    #         std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
-    #         img_tensor = img_tensor * std + mean
+        # Denormalize if needed (assume ImageNet mean/std)
+        if apply_denorm and torch.is_floating_point(img_tensor) and img_tensor.shape[0] == 3:
+            mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+            std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+            img_tensor = img_tensor * std + mean
 
-    #     img_np = img_tensor.permute(1, 2, 0).numpy()
-    #     img_np = (img_np * 255).clip(0, 255).astype(np.uint8)
+        img_np = img_tensor.permute(1, 2, 0).numpy()
+        img_np = (img_np * 255).clip(0, 255).astype(np.uint8)
 
-    #     return img_np
+        return img_np
 
-    # # --- Utility to save image ---
+    # --- Utility to save image ---
     # def save_image(img_tensor, save_path, title="Image", apply_denorm=True):
     #     img_np = to_numpy(img_tensor, apply_denorm=apply_denorm)
     #     os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -75,7 +75,7 @@ def add_gaussian_noise(image, mean=0, std=0.5):
     #     plt.close()
 
     # # Save all images
-    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check"
+    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/debug_folder/gaussian_noise"
     # save_image(image, os.path.join(base_path, "original_image.png"), title="Original Image", apply_denorm=True)
     # save_image(noise, os.path.join(base_path, "noise.png"), title="Noise", apply_denorm=False)
     # save_image(noisy_image, os.path.join(base_path, "noisy_image.png"), title="Noisy Image", apply_denorm=True)
@@ -135,23 +135,23 @@ def apply_motion_blur(image, kernel_size=15):
     #     elif img.dim() == 4:
     #         img = img[0]  # Take first image in batch
 
-        # print("Tensor stats:")
-        # print("  Shape:", img.shape)
-        # print("  Min:", img.min().item())
-        # print("  Max:", img.max().item())
-        # print("  Dtype:", img.dtype)
+    #     print("Tensor stats:")
+    #     print("  Shape:", img.shape)
+    #     print("  Min:", img.min().item())
+    #     print("  Max:", img.max().item())
+    #     print("  Dtype:", img.dtype)
 
         
-        # ✅ Apply ImageNet denormalization
-        # if denorm and img.shape[0] == 3:
-        #     mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
-        #     std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
-        #     img = img * std + mean
+    #     # ✅ Apply ImageNet denormalization
+    #     if denorm and img.shape[0] == 3:
+    #         mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+    #         std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+    #         img = img * std + mean
 
 
-        # img = img.permute(1, 2, 0).numpy()
-        # img = (img * 255).clip(0, 255).astype(np.uint8)
-        # return img
+    #     img = img.permute(1, 2, 0).numpy()
+    #     img = (img * 255).clip(0, 255).astype(np.uint8)
+    #     return img
         
 
     # def save_image(img_np, path, title="Image"):
@@ -162,12 +162,12 @@ def apply_motion_blur(image, kernel_size=15):
     #     plt.savefig(path, bbox_inches='tight')
     #     plt.close()
 
-    # Paths
-    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check_mb"
+    # # Paths
+    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/debug_folder/motion_blur"
     # save_image(to_numpy(original_tensor, denorm=True), os.path.join(base_path, "original_image_motion_blur.png"), title="Original Image")
     # save_image(to_numpy(blurred_tensor, denorm = True), os.path.join(base_path, "motion_blurred_image.png"), title="Motion Blurred Image")
 
-    # -----------------------------------------------------------------------
+    # # -----------------------------------------------------------------------
 
     return blurred_tensor
 
@@ -199,7 +199,7 @@ def apply_defocus_blur(image, kernel_size=15):
     # blurred_tensor = blurred_tensor * strength + original_tensor * (1 - strength)
     
 
-    # # ------------------ Visualization Block (non-invasive) ------------------
+    # ------------------ Visualization Block (non-invasive) ------------------
 
     # def to_numpy(img_tensor, denorm = True):
     #     img = img_tensor.detach().cpu()
@@ -208,11 +208,11 @@ def apply_defocus_blur(image, kernel_size=15):
     #     elif img.dim() == 4:
     #         img = img[0]  # Take first image in batch
 
-    #     # print("Tensor stats:")
-    #     # print("  Shape:", img.shape)
-    #     # print("  Min:", img.min().item())
-    #     # print("  Max:", img.max().item())
-    #     # print("  Dtype:", img.dtype)
+    #     print("Tensor stats:")
+    #     print("  Shape:", img.shape)
+    #     print("  Min:", img.min().item())
+    #     print("  Max:", img.max().item())
+    #     print("  Dtype:", img.dtype)
 
         
     #     # ✅ Apply ImageNet denormalization
@@ -236,11 +236,11 @@ def apply_defocus_blur(image, kernel_size=15):
     #     plt.close()
 
     # # Paths
-    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check_db"
+    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/debug_folder/defocus_blur"
     # save_image(to_numpy(original_tensor, denorm=True), os.path.join(base_path, "original_image_defocus_blur.png"), title="Original Image")
     # save_image(to_numpy(blurred_tensor, denorm = True), os.path.join(base_path, "defocus_blurred_image.png"), title="Defocus Blurred Image")
 
-    # # -----------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     return blurred_tensor
 
@@ -292,7 +292,7 @@ def uneven_illumination(image, strength=0.5):
     if is_batched:
         result_tensor = result_tensor.view(b, t, c, h, w)
 
-    # # ------------------ Visualization Block (non-invasive) ------------------
+    # ------------------ Visualization Block (non-invasive) ------------------
 
     # def to_numpy(img_tensor, denorm = True):
     #     img = img_tensor.detach().cpu()
@@ -301,11 +301,11 @@ def uneven_illumination(image, strength=0.5):
     #     elif img.dim() == 4:
     #         img = img[0]  # Take first image in batch
 
-    #     # print("Tensor stats:")
-    #     # print("  Shape:", img.shape)
-    #     # print("  Min:", img.min().item())
-    #     # print("  Max:", img.max().item())
-    #     # print("  Dtype:", img.dtype)
+    #     print("Tensor stats:")
+    #     print("  Shape:", img.shape)
+    #     print("  Min:", img.min().item())
+    #     print("  Max:", img.max().item())
+    #     print("  Dtype:", img.dtype)
 
         
     #     # ✅ Apply ImageNet denormalization
@@ -328,12 +328,12 @@ def uneven_illumination(image, strength=0.5):
     #     plt.savefig(path, bbox_inches='tight')
     #     plt.close()
 
-    # # # Paths
-    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check_ui"
+    # # Paths
+    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/debug_folder/uneven_illumination"
     # save_image(to_numpy(original_tensor, denorm=True), os.path.join(base_path, "original_image.png"), title="Original Image")
     # save_image(to_numpy(result_tensor, denorm = True), os.path.join(base_path, "ul_image.png"), title="Uneven Illumination Image")
 
-    # # -----------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     return result_tensor
 
@@ -406,37 +406,37 @@ def add_smoke_effect(image, intensity=0.7):
         corrupted_tensor = corrupted_tensor.view(batch_size, seq_len, 3, height, width)
 
     # --- Visualization Block (non-invasive) ---
-    import matplotlib.pyplot as plt
-    import os
+    # import matplotlib.pyplot as plt
+    # import os
 
-    def to_numpy(tensor, denorm=True):
-        img = tensor.detach().cpu()
-        if img.dim() == 5:
-            img = img[0, 0]
-        elif img.dim() == 4:
-            img = img[0]
+    # def to_numpy(tensor, denorm=True):
+    #     img = tensor.detach().cpu()
+    #     if img.dim() == 5:
+    #         img = img[0, 0]
+    #     elif img.dim() == 4:
+    #         img = img[0]
 
-        if denorm and img.shape[0] == 3:
-            mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
-            std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
-            img = img * std + mean
+    #     if denorm and img.shape[0] == 3:
+    #         mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+    #         std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+    #         img = img * std + mean
 
-        img_np = img.permute(1, 2, 0).numpy()
-        img_np = (img_np * 255).clip(0, 255).astype(np.uint8)
-        return img_np
+    #     img_np = img.permute(1, 2, 0).numpy()
+    #     img_np = (img_np * 255).clip(0, 255).astype(np.uint8)
+    #     return img_np
 
-    def save_image(img_np, path, title="Image"):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        plt.imshow(img_np)
-        plt.title(title)
-        plt.axis('off')
-        plt.savefig(path, bbox_inches='tight')
-        plt.close()
+    # def save_image(img_np, path, title="Image"):
+    #     os.makedirs(os.path.dirname(path), exist_ok=True)
+    #     plt.imshow(img_np)
+    #     plt.title(title)
+    #     plt.axis('off')
+    #     plt.savefig(path, bbox_inches='tight')
+    #     plt.close()
 
-    # Paths
-    base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/check_se"
-    save_image(to_numpy(image), os.path.join(base_path, "original.png"), "Original Image")
-    save_image(to_numpy(corrupted_tensor), os.path.join(base_path, "smoke_corrupted.png"), "Smoke Corrupted")
+    # # Paths
+    # base_path = "/home/santhi/Documents/DACAT/src/Cholec80/results/debug_folder/smoke_effect"
+    # save_image(to_numpy(image), os.path.join(base_path, "original.png"), "Original Image")
+    # save_image(to_numpy(corrupted_tensor), os.path.join(base_path, "smoke_corrupted.png"), "Smoke Corrupted")
 
     # --- Return result ---
     return corrupted_tensor
