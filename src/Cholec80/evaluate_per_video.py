@@ -1,3 +1,4 @@
+from ipdb import set_trace
 #!/usr/bin/env python3
 """
 eval.py
@@ -107,6 +108,7 @@ def main():
     args = p.parse_args()
 
     # Prepare output folder
+    # set_trace()
     os.makedirs(os.path.dirname(args.output_csv), exist_ok=True)
 
     # Locate GT & prediction folders
@@ -122,6 +124,8 @@ def main():
 
     records = []
     for vid in range(1, 25):
+    # for vid in range(41,81):
+        # set_trace()
         gt_path   = os.path.join(gt_dir,   f"video{vid:02d}-phase.txt")
         pred_path = os.path.join(pred_dir, f"video{vid:02d}-phase.txt")
         if not os.path.isfile(gt_path) or not os.path.isfile(pred_path):
@@ -137,11 +141,17 @@ def main():
         predID = np.array([int(x)+1 for x in pred_phases])
 
         j, pr, rc, acc = relaxed_metrics(gtID, predID, fps=1)
+        
+        # Handle NaN values: if all phases have NaN (no predictions), convert to 0
+        precision_mean = np.nanmean(pr)
+        recall_mean = np.nanmean(rc)
+        jaccard_mean = np.nanmean(j)
+        
         metrics = {
             'accuracy':  acc,
-            'precision': np.nanmean(pr),
-            'recall':    np.nanmean(rc),
-            'jaccard':   np.nanmean(j)
+            'precision': 0.0 if np.isnan(precision_mean) else precision_mean,
+            'recall':    0.0 if np.isnan(recall_mean) else recall_mean,
+            'jaccard':   0.0 if np.isnan(jaccard_mean) else jaccard_mean
         }
         for m, val in metrics.items():
             records.append({
