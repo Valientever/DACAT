@@ -123,8 +123,8 @@ def main():
         eval_cond = eval_cond[:-4]
 
     records = []
-    for vid in range(1, 25):
-    # for vid in range(41,81):
+    # for vid in range(1, 25):
+    for vid in range(41,81):
         # set_trace()
         gt_path   = os.path.join(gt_dir,   f"video{vid:02d}-phase.txt")
         pred_path = os.path.join(pred_dir, f"video{vid:02d}-phase.txt")
