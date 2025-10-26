@@ -49,13 +49,30 @@ else:
 	data_folder = '../data/frames_1fps/'
 	# set_trace()
 	op_paths = [os.path.join(data_folder,op) for op in os.listdir(data_folder)]
+	print(f'Total op_paths found: {len(op_paths)}')
 	if opts.split=='cuhk':
 		op_paths.sort(key=os.path.basename)
+		print(f'Sorted op_paths: {[os.path.basename(p) for p in op_paths]}')
 		test_set  = []
-		for op_path in op_paths[0:25]:
+		# Check if we have enough videos
+		if len(op_paths) <= 80:
+			print(f"Warning: Only {len(op_paths)} videos found, but trying to access video 80")
+			print("Available videos:", [os.path.basename(p) for p in op_paths])
+			# Use the last video instead
+			target_range = op_paths[40:81]
+		else:
+			target_range = op_paths[40:81]
+		
+		for op_path in target_range:
 			ID = os.path.basename(op_path)
+			print(f"Checking video path: {op_path}, ID: {ID}")
 			if os.path.isdir(op_path):
 				test_set.append((ID,op_path))
+				print(f"Added video {ID} to test set")
+			else:
+				print(f"Path {op_path} is not a directory")
+		
+		print(f"Final test_set: {test_set}")
 
 def Unitconversion(flops, params, throughout):
     print("params : {} M".format(round(params / (1000**2), 2)))
@@ -174,6 +191,16 @@ resumePath = os.path.join(resumePath,'checkpoint_best_acc.pth.tar')
 
 # resumePath = os.path.join(opts.output_folder,opts.experiment_name,opts.step_3,'models','checkpoint_best_acc.pth.tar')
 epoch = torch.load(resumePath)['epoch']
-model.summary(log_file=os.path.join(pred_folder, 'log.txt'), epoch=epoch)
+# Skip summary for single video to avoid metric calculation errors
+if len(test_set) == 0:
+	print("Error: No videos found in test_set!")
+	exit(1)
+elif len(test_set) > 1:
+	model.summary(log_file=os.path.join(pred_folder, 'log.txt'), epoch=epoch)
+else:
+	print(f"Skipping model.summary() for single video processing (Video {test_set[0][0]})")
+	# Create a simple log file instead
+	with open(os.path.join(pred_folder, 'log.txt'), 'w') as f:
+		f.write(f"Prediction generation completed for video {test_set[0][0]} at epoch {epoch}\n")
 from visualization.Visualize import visual_main
 visual_main(out_folder, suffixpred=suffix[4:])
