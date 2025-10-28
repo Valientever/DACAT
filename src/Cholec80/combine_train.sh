@@ -3,8 +3,8 @@
 conda activate dacat
 # gaussian_noise  motion_blur  defocus_blur  uneven_illumination  smoke_effect  random none/clean
 # Create a variabe to store experiment name 
-EXPERIMENT_NAME="defocus_1210"
-CORRUPTION_NAME="defocus_blur"
+EXPERIMENT_NAME="random_1210"
+CORRUPTION_NAME="random"
 PREDICTION_NAME="predicts"
 
 # Define log file location

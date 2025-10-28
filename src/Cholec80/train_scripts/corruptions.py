@@ -210,11 +210,11 @@ def apply_defocus_blur(image, kernel_size=15):
         elif img.dim() == 4:
             img = img[0]  # Take first image in batch
 
-        print("Tensor stats:")
-        print("  Shape:", img.shape)
-        print("  Min:", img.min().item())
-        print("  Max:", img.max().item())
-        print("  Dtype:", img.dtype)
+        # print("Tensor stats:")
+        # print("  Shape:", img.shape)
+        # print("  Min:", img.min().item())
+        # print("  Max:", img.max().item())
+        # print("  Dtype:", img.dtype)
 
         
         # ✅ Apply ImageNet denormalization

@@ -27,14 +27,14 @@ runs=(
     "clean_1210 mb_predicts clean motion_blur"
     "clean_1210 db_predicts clean defocus_blur"
     "clean_1210 ui_predicts clean uneven_illumination"
-    # "clean_1210 se_predicts clean smoke_effect"
-    # "clean_1210 r_predicts clean random"
+    "clean_1210 se_predicts clean smoke_effect"
+    "clean_1210 r_predicts clean random"
     "gnoise_1210 predicts gaussian_noise gaussian_noise"
     "mblur_1210 predicts motion_blur motion_blur"
     "dblur_1210 predicts defocus_blur defocus_blur"
     "ueillumination_1210 predicts uneven_illumination uneven_illumination"
-    # "seffect_1210 predicts smoke_effect smoke_effect"
-    # "random_1210 predicts random random"
+    "seffect_1210 predicts smoke_effect smoke_effect"
+    "random_1210 predicts random random"
   # … add one line per setting …
 )
 
