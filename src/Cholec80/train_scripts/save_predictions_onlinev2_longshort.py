@@ -59,9 +59,9 @@ else:
 			print(f"Warning: Only {len(op_paths)} videos found, but trying to access video 80")
 			print("Available videos:", [os.path.basename(p) for p in op_paths])
 			# Use the last video instead
-			target_range = op_paths[40:81]
+			target_range = op_paths[0:24]
 		else:
-			target_range = op_paths[40:81]
+			target_range = op_paths[0:25]
 		
 		for op_path in target_range:
 			ID = os.path.basename(op_path)
