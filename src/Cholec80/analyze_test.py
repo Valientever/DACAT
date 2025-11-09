@@ -112,7 +112,9 @@ def run_tests(df, corruptions, metrics, alpha, logf, bootstrap_iterations=10000,
             corr_vals  = wide[corr].values
 
             med_corr = pd.Series(corr_vals).median()
-            diff     = med_corr - pd.Series(clean_vals).median()
+            # Calculate difference as median of paired differences (consistent with bootstrap CI)
+            paired_diffs = corr_vals - clean_vals
+            diff = np.median(paired_diffs)
             stat, p  = wilcoxon(clean_vals, corr_vals)
             sig      = p < alpha
             

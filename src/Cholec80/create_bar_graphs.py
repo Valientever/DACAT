@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
 Create clear bar graphs showing:
-1. Absolute performance values
-2. Performance differences between clean and corruption-trained models
+1. Performance differences between clean and corruption-trained models
+2. Error bars showing 95% confidence intervals
 3. Statistical significance markers
+
+Parses data from statistical_log_with_ci.txt
 """
 
 import pandas as pd
@@ -11,45 +13,80 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from pathlib import Path
+import re
 
 # Set style
 plt.style.use('seaborn-v0_8-darkgrid')
 sns.set_palette("husl")
 
-# Sample data from your statistical_log_ext.txt
-# Replace this with actual data parsing
-data = {
-    'gaussian_noise': {
-        'clean': {'accuracy': 37.68, 'jaccard': 11.37, 'precision': 39.00, 'recall': 23.44},
-        'trained': {'accuracy': 14.66, 'jaccard': 6.56, 'precision': 36.98, 'recall': 17.82},
-        'p_values': {'accuracy': 0.0000, 'jaccard': 0.0001, 'precision': 0.4291, 'recall': 0.0003}
-    },
-    'motion_blur': {
-        'clean': {'accuracy': 8.21, 'jaccard': 6.05, 'precision': 36.54, 'recall': 15.49},
-        'trained': {'accuracy': 12.85, 'jaccard': 8.68, 'precision': 53.28, 'recall': 15.31},
-        'p_values': {'accuracy': 0.0012, 'jaccard': 0.0001, 'precision': 0.0024, 'recall': 0.7257}
-    },
-    'defocus_blur': {
-        'clean': {'accuracy': 45.50, 'jaccard': 10.89, 'precision': 50.87, 'recall': 19.16},
-        'trained': {'accuracy': 8.69, 'jaccard': 5.34, 'precision': 35.70, 'recall': 16.65},
-        'p_values': {'accuracy': 0.0000, 'jaccard': 0.0000, 'precision': 0.0192, 'recall': 0.0787}
-    },
-    'smoke_effect': {
-        'clean': {'accuracy': 25.33, 'jaccard': 9.51, 'precision': 43.35, 'recall': 16.18},
-        'trained': {'accuracy': 34.18, 'jaccard': 8.32, 'precision': 46.64, 'recall': 12.56},
-        'p_values': {'accuracy': 0.0072, 'jaccard': 0.3305, 'precision': 0.7048, 'recall': 0.6634}
-    },
-    'uneven_illumination': {
-        'clean': {'accuracy': 24.08, 'jaccard': 8.48, 'precision': 31.47, 'recall': 25.31},
-        'trained': {'accuracy': 5.47, 'jaccard': 5.42, 'precision': 31.22, 'recall': 20.64},
-        'p_values': {'accuracy': 0.0000, 'jaccard': 0.0035, 'precision': 0.4223, 'recall': 0.7898}
-    },
-    'random': {
-        'clean': {'accuracy': 10.91, 'jaccard': 6.22, 'precision': 24.21, 'recall': 20.29},
-        'trained': {'accuracy': 6.79, 'jaccard': 4.71, 'precision': 21.78, 'recall': 18.25},
-        'p_values': {'accuracy': 0.0005, 'jaccard': 0.9664, 'precision': 0.6033, 'recall': 0.4389}
-    }
-}
+
+def parse_statistical_log(file_path):
+    """
+    Parse statistical_log_with_ci.txt and extract comparison data.
+    
+    Returns:
+        DataFrame with columns: corruption, metric, median, difference, ci_lower, ci_upper, 
+                                p_value, significance
+    """
+    data_rows = []
+    
+    with open(file_path, 'r') as f:
+        content = f.read()
+    
+    # Extract alpha level
+    alpha_match = re.search(r'Alpha\s*=\s*([\d.]+)', content)
+    alpha = float(alpha_match.group(1)) if alpha_match else 0.05
+    
+    # Split by corruption sections
+    corruption_sections = re.split(r'===\s*Corruption:\s*(.+?)\s*===', content)[1:]
+    
+    print("📖 Parsing statistical log with confidence intervals...")
+    
+    # Process pairs: (corruption_name, section_content)
+    for i in range(0, len(corruption_sections), 2):
+        corruption = corruption_sections[i].strip()
+        section_content = corruption_sections[i + 1]
+        
+        # Split into lines and find data lines
+        lines = section_content.strip().split('\n')
+        data_lines = [line for line in lines if line.strip() and 
+                     not line.startswith('#') and 
+                     not line.startswith('metric') and
+                     (line.split()[0] != 'metric' if line.split() else True)]
+        
+        for line in data_lines:
+            parts = line.split()
+            if len(parts) >= 11:  # Updated to match new format with CI columns
+                metric = parts[0]
+                pairs = int(parts[1])
+                median = float(parts[2])
+                train_condition = parts[3]
+                eval_condition = parts[4]
+                difference = float(parts[5])
+                ci_lower = float(parts[6])
+                ci_upper = float(parts[7])
+                wilcoxon_stat = float(parts[8])
+                p_value = float(parts[9])
+                significance = parts[10] == 'True'
+                
+                data_rows.append({
+                    'corruption': corruption,
+                    'metric': metric,
+                    'median': median,
+                    'difference': difference,
+                    'ci_lower': ci_lower,
+                    'ci_upper': ci_upper,
+                    'p_value': p_value,
+                    'significance': significance,
+                    'alpha': alpha
+                })
+    
+    df = pd.DataFrame(data_rows)
+    print(f"✅ Extracted {len(df)} comparisons from statistical log")
+    print(f"   Corruptions: {df['corruption'].unique().tolist()}")
+    print(f"   Metrics: {df['metric'].unique().tolist()}")
+    
+    return df
 
 def get_significance_marker(p_value):
     """Convert p-value to significance marker"""
@@ -60,111 +97,138 @@ def get_significance_marker(p_value):
     elif p_value < 0.05:
         return '*'
     else:
-        return 'ns'
+        return ''
 
-def create_comparison_bar_graph(data, metric='accuracy', output_path='comparison_bars.png'):
+
+def create_grouped_bar_chart_with_error_bars(df, output_path='grouped_bar_chart.png'):
     """
-    Create side-by-side bar graphs with values and differences
+    Create a grouped bar chart showing median differences across all metrics and corruptions,
+    with error bars representing 95% confidence intervals and significance indicators.
+    
+    X-axis: Metric Type (Accuracy, Jaccard, Precision, Recall)
+    Y-axis: Median % Difference (Trained Model vs. Baseline)
+    Groups: Different corruptions (color-coded)
+    Error bars: 95% CI
+    Asterisks: Statistical significance (p < 0.05)
     """
-    corruptions = list(data.keys())
-    corruption_labels = [c.replace('_', ' ').title() for c in corruptions]
+    # Define corruption order and colors
+    corruption_order = [ 'gaussian_noise', 'motion_blur', 'defocus_blur',
+                       'smoke_effect', 'uneven_illumination', 'random' ]
     
-    clean_values = [data[c]['clean'][metric] for c in corruptions]
-    trained_values = [data[c]['trained'][metric] for c in corruptions]
-    differences = [trained_values[i] - clean_values[i] for i in range(len(corruptions))]
-    p_values = [data[c]['p_values'][metric] for c in corruptions]
+    # Filter to only include corruptions that exist in data
+    available_corruptions = [c for c in corruption_order if c in df['corruption'].unique()]
     
-    # Create figure with 2 subplots
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    # Define colors for each corruption
+    colors = {
+        'defocus_blur': '#3498db',
+        'gaussian_noise': '#e74c3c',
+        'motion_blur': '#2ecc71',
+        'random': '#f39c12',
+        'smoke_effect': '#9b59b6',
+        'uneven_illumination': '#1abc9c'
+    }
     
-    # --- LEFT PLOT: Absolute Values ---
-    x = np.arange(len(corruptions))
-    width = 0.35
+    # Metrics order
+    metrics = ['accuracy', 'jaccard', 'precision', 'recall']
+    metric_labels = ['Accuracy', 'Jaccard', 'Precision', 'Recall']
     
-    bars1 = ax1.bar(x - width/2, clean_values, width, label='Clean-Trained Model', 
-                    color='#3498db', edgecolor='black', linewidth=1.2)
-    bars2 = ax1.bar(x + width/2, trained_values, width, label='Corruption-Trained Model',
-                    color='#e74c3c', edgecolor='black', linewidth=1.2)
+    # Create figure
+    fig, ax = plt.subplots(figsize=(14, 8))
     
-    # Add value labels on bars
-    for bars in [bars1, bars2]:
-        for bar in bars:
-            height = bar.get_height()
-            ax1.text(bar.get_x() + bar.get_width()/2., height,
-                    f'{height:.1f}%',
-                    ha='center', va='bottom', fontsize=9, fontweight='bold')
+    # Set up bar positions
+    x = np.arange(len(metrics))
+    width = 0.13  # Width of each bar
+    n_corruptions = len(available_corruptions)
     
-    # Add significance markers
-    max_height = max(max(clean_values), max(trained_values))
-    for i, (p_val, diff) in enumerate(zip(p_values, differences)):
-        sig = get_significance_marker(p_val)
-        if sig != 'ns':
-            # Position significance marker above the taller bar
-            y_pos = max(clean_values[i], trained_values[i]) + max_height * 0.05
-            ax1.text(i, y_pos, sig, ha='center', va='bottom', 
-                    fontsize=14, fontweight='bold', color='green' if diff > 0 else 'red')
+    # Calculate offset for each corruption
+    offsets = np.linspace(-(n_corruptions-1)*width/2, (n_corruptions-1)*width/2, n_corruptions)
     
-    ax1.set_xlabel('Corruption Type', fontsize=12, fontweight='bold')
-    ax1.set_ylabel(f'{metric.title()} (%)', fontsize=12, fontweight='bold')
-    ax1.set_title(f'{metric.title()} Comparison: Clean vs Corruption-Trained Models',
-                 fontsize=14, fontweight='bold', pad=20)
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(corruption_labels, rotation=45, ha='right')
-    ax1.legend(loc='upper left', fontsize=10)
-    ax1.grid(axis='y', alpha=0.3, linestyle='--')
-    ax1.set_ylim(0, max_height * 1.2)
-    
-    # --- RIGHT PLOT: Differences ---
-    colors = ['green' if d > 0 else 'red' for d in differences]
-    bars3 = ax2.bar(x, differences, color=colors, alpha=0.7, edgecolor='black', linewidth=1.2)
-    
-    # Add value labels and significance
-    for i, (bar, diff, p_val) in enumerate(zip(bars3, differences, p_values)):
-        height = bar.get_height()
-        sig = get_significance_marker(p_val)
+    # Plot bars for each corruption
+    for idx, corruption in enumerate(available_corruptions):
+        corruption_data = df[df['corruption'] == corruption]
         
-        # Position text
-        va = 'bottom' if height > 0 else 'top'
-        y_offset = 0.5 if height > 0 else -0.5
+        differences = []
+        errors_lower = []
+        errors_upper = []
+        p_values = []
         
-        # Show difference value
-        ax2.text(bar.get_x() + bar.get_width()/2., height + y_offset,
-                f'{diff:+.1f}%',
-                ha='center', va=va, fontsize=10, fontweight='bold')
+        for metric in metrics:
+            metric_data = corruption_data[corruption_data['metric'] == metric]
+            if not metric_data.empty:
+                row = metric_data.iloc[0]
+                differences.append(row['difference'])
+                # Calculate error bar distances from median difference
+                # Handle edge case where bootstrap CI bounds may not perfectly contain the median
+                err_lower = row['difference'] - row['ci_lower']
+                err_upper = row['ci_upper'] - row['difference']
+                
+                # Ensure error bars are non-negative (data reporting issue, not visualization issue)
+                # This can happen with bootstrap when median falls outside percentile CI
+                err_lower = max(0, err_lower)
+                err_upper = max(0, err_upper)
+                
+                if err_lower == 0 or err_upper == 0:
+                    print(f"⚠️  Note: Adjusted error bar for {corruption}/{metric} " +
+                          f"(diff={row['difference']:.2f}, CI=[{row['ci_lower']:.2f}, {row['ci_upper']:.2f}])")
+                
+                errors_lower.append(err_lower)
+                errors_upper.append(err_upper)
+                p_values.append(row['p_value'])
+            else:
+                differences.append(0)
+                errors_lower.append(0)
+                errors_upper.append(0)
+                p_values.append(1.0)
         
-        # Show significance
-        if sig != 'ns':
-            y_sig = height + (1.5 if height > 0 else -1.5)
-            ax2.text(bar.get_x() + bar.get_width()/2., y_sig,
-                    sig, ha='center', va=va, fontsize=12, fontweight='bold',
-                    color='darkgreen' if height > 0 else 'darkred')
+        # Combine lower and upper errors for error bars
+        errors = [errors_lower, errors_upper]
+        
+        # Create bars
+        corruption_label = corruption.replace('_', ' ').title()
+        bars = ax.bar(x + offsets[idx], differences, width, 
+                     label=corruption_label,
+                     color=colors.get(corruption, '#95a5a6'),
+                     alpha=0.85,
+                     edgecolor='black',
+                     linewidth=0.8,
+                     yerr=errors,
+                     capsize=3,
+                     error_kw={'linewidth': 1.5, 'ecolor': 'black', 'alpha': 0.7})
+        
+        # Add significance markers
+        for i, (bar, p_val, diff) in enumerate(zip(bars, p_values, differences)):
+            sig_marker = get_significance_marker(p_val)
+            if sig_marker:
+                # Position asterisk above error bar
+                error_top = diff + errors_upper[i]
+                y_pos = error_top + 2
+                ax.text(bar.get_x() + bar.get_width()/2, y_pos,
+                       sig_marker,
+                       ha='center', va='bottom',
+                       fontsize=11, fontweight='bold',
+                       color='black')
     
-    # Add zero line
-    ax2.axhline(y=0, color='black', linestyle='-', linewidth=2)
+    # Customize plot
+    ax.set_xlabel('Metric Type', fontsize=13, fontweight='bold')
+    ax.set_ylabel('Median % Difference (Trained Model vs. Baseline)', fontsize=13, fontweight='bold')
+    ax.set_title('Comparison of Model Performance Improvement Across Various Corruptions\n' +
+                 '(Corruption Training vs. Clean Training on Corrupted Data)',
+                 fontsize=15, fontweight='bold', pad=20)
+    ax.set_xticks(x)
+    ax.set_xticklabels(metric_labels, fontsize=12)
+    ax.axhline(y=0, color='black', linestyle='-', linewidth=1.5, alpha=0.3)
+    ax.legend(loc='upper left', fontsize=10, ncol=2, framealpha=0.95)
+    ax.grid(axis='y', alpha=0.3, linestyle='--')
     
-    ax2.set_xlabel('Corruption Type', fontsize=12, fontweight='bold')
-    ax2.set_ylabel(f'{metric.title()} Difference (%)', fontsize=12, fontweight='bold')
-    ax2.set_title(f'Performance Change with Corruption Training\n(Positive = Improvement)',
-                 fontsize=14, fontweight='bold', pad=20)
-    ax2.set_xticks(x)
-    ax2.set_xticklabels(corruption_labels, rotation=45, ha='right')
-    ax2.grid(axis='y', alpha=0.3, linestyle='--')
+    # Add footnote for significance
+    fig.text(0.5, 0.02, 
+             '* p<0.05, ** p<0.01, *** p<0.001 (Wilcoxon signed-rank test)\n' +
+             'Error bars represent 95% confidence intervals (10,000 bootstrap iterations)',
+             ha='center', fontsize=9, style='italic')
     
-    # Add legend for significance
-    from matplotlib.patches import Patch
-    legend_elements = [
-        Patch(facecolor='green', alpha=0.7, label='Improvement'),
-        Patch(facecolor='red', alpha=0.7, label='Degradation'),
-    ]
-    ax2.legend(handles=legend_elements, loc='upper left', fontsize=10)
-    
-    # Add significance note at bottom
-    fig.text(0.5, 0.02, '* p<0.05, ** p<0.01, *** p<0.001, ns = not significant',
-            ha='center', fontsize=10, style='italic')
-    
-    plt.tight_layout(rect=[0, 0.03, 1, 1])
+    plt.tight_layout(rect=[0, 0.06, 1, 1])
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
-    print(f"✓ Saved: {output_path}")
+    print(f"✅ Saved grouped bar chart: {output_path}")
     plt.close()
 
 def create_all_metrics_panel(data, output_path='all_metrics_comparison.png'):
@@ -300,29 +364,39 @@ def create_heatmap_with_values(data, output_path='heatmap_differences.png'):
 
 # Main execution
 if __name__ == '__main__':
-    output_dir = Path('/home/santhi/Documents/DACAT/src/Cholec80/results/bar_graphs')
-    output_dir.mkdir(exist_ok=True)
+    import argparse
     
-    print("🎨 Generating bar graphs...")
-    print("=" * 60)
+    parser = argparse.ArgumentParser(
+        description='Generate bar graphs with error bars from statistical_log_with_ci.txt'
+    )
+    parser.add_argument('--input', '-i', 
+                       default='results/statistical_log_with_ci.txt',
+                       help='Path to statistical_log_with_ci.txt file (default: results/statistical_log_with_ci.txt)')
+    parser.add_argument('--output_dir', '-o',
+                       default='results/bar_graphs_CI',
+                       help='Output directory for graphs (default: results/bar_graphs_CI)')
     
-    # Create individual metric comparisons
-    for metric in ['accuracy', 'jaccard', 'precision', 'recall']:
-        output_path = output_dir / f'{metric}_comparison.png'
-        create_comparison_bar_graph(data, metric=metric, output_path=str(output_path))
+    args = parser.parse_args()
     
-    # Create all-metrics panel
-    create_all_metrics_panel(data, output_path=str(output_dir / 'all_metrics_panel.png'))
+    # Setup paths
+    input_path = Path(args.input)
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create heatmap with values
-    create_heatmap_with_values(data, output_path=str(output_dir / 'heatmap_differences.png'))
+    print("🎨 Generating bar graphs with error bars and significance indicators...")
+    print("=" * 70)
+    print(f"📂 Input file: {input_path}")
+    print(f"📂 Output directory: {output_dir}")
+    print("=" * 70)
     
-    print("=" * 60)
+    # Parse the statistical log file
+    df = parse_statistical_log(input_path)
+    
+    # Create grouped bar chart with error bars (main visualization)
+    print("\n📊 Creating grouped bar chart with error bars...")
+    create_grouped_bar_chart_with_error_bars(df, output_path=str(output_dir / 'grouped_bar_chart_with_ci.png'))
+    
+    print("\n" + "=" * 70)
     print(f"✅ All graphs saved to: {output_dir}")
     print("\nGenerated files:")
-    print("  1. accuracy_comparison.png - Accuracy bars + differences")
-    print("  2. jaccard_comparison.png - Jaccard bars + differences")
-    print("  3. precision_comparison.png - Precision bars + differences")
-    print("  4. recall_comparison.png - Recall bars + differences")
-    print("  5. all_metrics_panel.png - 2x2 panel with all metrics")
-    print("  6. heatmap_differences.png - Heatmap showing changes")
+    print("  📊 grouped_bar_chart_with_ci.png - Main grouped visualization with error bars")
