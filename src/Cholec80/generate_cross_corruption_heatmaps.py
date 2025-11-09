@@ -113,16 +113,15 @@ def create_cross_corruption_matrix_data(df):
     """
     
     # Define the EXACT order requested by user
+    # User-specified order for corruptions (matching your experimental setup)
     user_specified_order = [
         'gaussian_noise',      # Gaussian_noise
-        'motion_blur',         # Motion_blur  
+        'motion_blur',         # Motion_blur
         'defocus_blur',        # Defocus_blur
-        'uneven_illumination', # Uneven_illumination
         'smoke_effect',        # Smoke_effect
+        'uneven_illumination', # Uneven_illumination
         'random_corruptions'   # Random_corruption (50:50)
-    ]
-    
-    # Get available corruptions from data
+    ]    # Get available corruptions from data
     available_corruptions = list(df['train_corruption'].unique())
     
     # Create ordered list: only include corruptions that exist in your data, in the specified order
@@ -323,6 +322,12 @@ def create_effect_size_heatmap(df, metric, all_corruptions, output_path):
     max_abs_value = max(abs(effect_matrix.min().min()), abs(effect_matrix.max().max()))
     vmax = max_abs_value if max_abs_value > 0 else 1
     
+    # DEBUG: Print effect matrix to verify values
+    print(f"\n📊 {metric.title()} Effect Size Matrix:")
+    print(effect_matrix)
+    print(f"   Min value: {effect_matrix.min().min():.2f}")
+    print(f"   Max value: {effect_matrix.max().max():.2f}")
+    
     ax = sns.heatmap(
         effect_matrix,
         annot=True,
@@ -337,13 +342,24 @@ def create_effect_size_heatmap(df, metric, all_corruptions, output_path):
         annot_kws={'size': 10}
     )
     
-    # Add significance markers (asterisks)
+    # Add significance markers and direction arrows
     for i, eval_corr in enumerate(effect_matrix.index):
         for j, train_corr in enumerate(effect_matrix.columns):
             if eval_corr in sig_matrix.index and train_corr in sig_matrix.columns:
                 if sig_matrix.loc[eval_corr, train_corr]:
+                    # Add asterisk for significance
                     ax.text(j + 0.5, i + 0.15, '*', fontsize=16, fontweight='bold',
                            ha='center', va='center', color='black')
+            
+            # Add arrow to indicate direction (↑ positive, ↓ negative)
+            if eval_corr in effect_matrix.index and train_corr in effect_matrix.columns:
+                value = effect_matrix.loc[eval_corr, train_corr]
+                if not np.isnan(value):
+                    arrow = '↑' if value > 0 else '↓' if value < 0 else '='
+                    # Use contrasting color based on background
+                    arrow_color = 'darkred' if value < 0 else 'darkgreen' if value > 0 else 'gray'
+                    ax.text(j + 0.5, i + 0.85, arrow, fontsize=14, fontweight='bold',
+                           ha='center', va='center', color=arrow_color)
     
     # Customize the plot
     plt.title(f'{metric.title()} - Cross-Corruption Effect Sizes\n(* = Significant at α=0.05)', 
@@ -369,7 +385,10 @@ def create_effect_size_heatmap(df, metric, all_corruptions, output_path):
 def create_combined_overview_heatmap(df, all_corruptions, all_metrics, output_path):
     """Create a 2x2 subplot with all metrics showing p-values"""
     
-    fig, axes = plt.subplots(2, 2, figsize=(20, 16))
+    import matplotlib.pyplot as plt_local
+    from matplotlib.colors import ListedColormap
+    
+    fig, axes = plt_local.subplots(2, 2, figsize=(20, 16))
     axes = axes.flatten()
     
     for idx, metric in enumerate(all_metrics):
@@ -383,7 +402,7 @@ def create_combined_overview_heatmap(df, all_corruptions, all_metrics, output_pa
             index='eval_corruption',
             columns='train_corruption',
             values='p_value',
-            fill_value=1.0
+            fill_value=np.nan  # Use NaN for missing data
         )
         
         # Effect size matrix for direction markers
@@ -391,7 +410,7 @@ def create_combined_overview_heatmap(df, all_corruptions, all_metrics, output_pa
             index='eval_corruption',
             columns='train_corruption',
             values='effect_size',
-            fill_value=0
+            fill_value=np.nan  # Use NaN for missing data
         )
         
         # Reorder
@@ -399,29 +418,42 @@ def create_combined_overview_heatmap(df, all_corruptions, all_metrics, output_pa
         pvalue_matrix = pvalue_matrix.reindex(index=ordered_corruptions, columns=ordered_corruptions)
         effect_matrix = effect_matrix.reindex(index=ordered_corruptions, columns=ordered_corruptions)
         
+        # Set off-diagonal elements to NaN (only diagonal has real data)
+        for i, eval_corr in enumerate(ordered_corruptions):
+            for j, train_corr in enumerate(ordered_corruptions):
+                if eval_corr != train_corr:
+                    pvalue_matrix.loc[eval_corr, train_corr] = np.nan
+                    effect_matrix.loc[eval_corr, train_corr] = np.nan
+        
+        # Get the RdYlGn_r colormap and set bad values (NaN) to white
+        cmap = plt_local.cm.RdYlGn_r.copy()
+        cmap.set_bad(color='white')
+        
         # Create heatmap for p-values
         sns.heatmap(
             pvalue_matrix,
             annot=True,
             fmt='.3f',
-            cmap='RdYlGn_r',  # Green for low p-values (significant)
+            cmap=cmap,  # Custom colormap with white for NaN
             vmin=0,
             vmax=0.1,
             ax=ax,
-            cbar_kws={'label': 'P-Value'},
+            cbar_kws={'label': 'P-Value\n(White=N/A)'},
             linewidths=0.5,
             square=True,
-            annot_kws={'size': 8}
+            annot_kws={'size': 8},
+            mask=pvalue_matrix.isnull()  # Mask NaN values (don't show annotation)
         )
         
-        # Add direction markers for significant results
+        # Add direction markers for significant results (only for diagonal)
         for i, eval_corr in enumerate(pvalue_matrix.index):
             for j, train_corr in enumerate(pvalue_matrix.columns):
                 if eval_corr in effect_matrix.index and train_corr in effect_matrix.columns:
                     effect_val = effect_matrix.loc[eval_corr, train_corr]
                     p_val = pvalue_matrix.loc[eval_corr, train_corr]
                     
-                    if p_val < 0.05:
+                    # Only add markers for non-NaN values (diagonal)
+                    if not np.isnan(p_val) and not np.isnan(effect_val) and p_val < 0.05:
                         marker = '↑' if effect_val > 0 else '↓' if effect_val < 0 else '='
                         ax.text(j + 0.5, i + 0.15, marker, fontsize=12, fontweight='bold',
                                ha='center', va='center', color='black')
@@ -434,12 +466,12 @@ def create_combined_overview_heatmap(df, all_corruptions, all_metrics, output_pa
         ax.tick_params(axis='x', rotation=45, labelsize=10)
         ax.tick_params(axis='y', rotation=0, labelsize=10)
     
-    plt.suptitle('Cross-Corruption P-Values Analysis\n(Green=Significant, Red=Not Significant, ↑=Positive, ↓=Negative)', 
+    plt_local.suptitle('Cross-Corruption P-Values Analysis\n(Green=Significant, Red=Not Significant, White=N/A, ↑=Positive Effect, ↓=Negative Effect)', 
                  fontsize=18, fontweight='bold', y=0.98)
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.93)
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
-    plt.close()
+    plt_local.tight_layout()
+    plt_local.subplots_adjust(top=0.93)
+    plt_local.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt_local.close()
     
     print(f"✅ Combined overview heatmap saved to: {output_path}")
 

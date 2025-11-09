@@ -197,19 +197,20 @@ def main(experiment_name, predict_name):
     # maindir = r"/home/santhi/Documents/DACAT/corrupt_pred/diff_pred/diff_pred_1/"
     # logging the output to a .txt file
     root_dir = "/home/santhi/Documents/DACAT/src/Cholec80/results"
-    log_file = os.path.join(root_dir, experiment_name,predict_name, "eval_results_1.txt")
+    log_file = os.path.join(root_dir, experiment_name,predict_name, "eval_results_total.txt")
     sys.stdout = open(log_file, "w")
     sys.stderr = sys.stdout
     print(f"Logging started for experiment: {experiment_name}, prediction: {predict_name}")
     maindir = os.path.join(root_dir, experiment_name, predict_name)
 
     # Gather ground-truth text file paths
-    # For example, we pick from 41..80
+    # For Cholec80: videos 41-80
     phase_ground_truths = []
     gt_root_folder = os.path.join(maindir, "gt")
-    for k in range(41, 81):
-    # for k in range(1, 25):  # 1 to 24 inclusive
+    # for k in range(41, 81):
+    for k in range(1, 24):
         phase_ground_truths.append(
+            # os.path.join(gt_root_folder, f"video{k}-phase.txt")
             os.path.join(gt_root_folder, f"video{k:02d}-phase.txt")
         )
 

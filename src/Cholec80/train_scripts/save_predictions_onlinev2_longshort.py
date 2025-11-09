@@ -52,7 +52,7 @@ else:
 	print(f'Total op_paths found: {len(op_paths)}')
 	if opts.split=='cuhk':
 		op_paths.sort(key=os.path.basename)
-		print(f'Sorted op_paths: {[os.path.basename(p) for p in op_paths]}')
+		# print(f'Sorted op_paths: {[os.path.basename(p) for p in op_paths]}')
 		test_set  = []
 		# Check if we have enough videos
 		if len(op_paths) <= 80:
