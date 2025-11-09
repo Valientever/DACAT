@@ -118,19 +118,19 @@ def create_grouped_bar_chart_with_error_bars(df, output_path='grouped_bar_chart.
     # Filter to only include corruptions that exist in data
     available_corruptions = [c for c in corruption_order if c in df['corruption'].unique()]
     
-    # Define colors for each corruption
+    # Define bright colors for each corruption
     colors = {
-        'defocus_blur': '#3498db',
-        'gaussian_noise': '#e74c3c',
-        'motion_blur': '#2ecc71',
-        'random': '#f39c12',
-        'smoke_effect': '#9b59b6',
-        'uneven_illumination': '#1abc9c'
+        'defocus_blur': '#FF6B6B',        # Bright Red
+        'gaussian_noise': '#4ECDC4',      # Bright Cyan
+        'motion_blur': '#95E1D3',         # Bright Mint Green
+        'random': '#FFD93D',              # Bright Yellow
+        'smoke_effect': '#C44569',        # Bright Magenta/Pink
+        'uneven_illumination': '#6BCB77'  # Bright Green
     }
     
     # Metrics order
-    metrics = ['accuracy', 'jaccard', 'precision', 'recall']
-    metric_labels = ['Accuracy', 'Jaccard', 'Precision', 'Recall']
+    metrics = ['accuracy', 'precision', 'recall', 'jaccard']
+    metric_labels = ['Accuracy', 'Precision', 'Recall', 'Jaccard']
     
     # Create figure
     fig, ax = plt.subplots(figsize=(14, 8))
@@ -195,13 +195,22 @@ def create_grouped_bar_chart_with_error_bars(df, output_path='grouped_bar_chart.
                      capsize=3,
                      error_kw={'linewidth': 1.5, 'ecolor': 'black', 'alpha': 0.7})
         
-        # Add significance markers
+        # Add difference values on top of bars and significance markers
         for i, (bar, p_val, diff) in enumerate(zip(bars, p_values, differences)):
+            # Position for difference value (on top of error bar)
+            error_top = diff + errors_upper[i]
+            
+            # Add difference value
+            ax.text(bar.get_x() + bar.get_width()/2, error_top + 1,
+                   f'{diff:.1f}',
+                   ha='center', va='bottom',
+                   fontsize=10, fontweight='bold',
+                   color='black')
+            
+            # Add significance marker above the value
             sig_marker = get_significance_marker(p_val)
             if sig_marker:
-                # Position asterisk above error bar
-                error_top = diff + errors_upper[i]
-                y_pos = error_top + 2
+                y_pos = error_top + 4
                 ax.text(bar.get_x() + bar.get_width()/2, y_pos,
                        sig_marker,
                        ha='center', va='bottom',
@@ -213,11 +222,19 @@ def create_grouped_bar_chart_with_error_bars(df, output_path='grouped_bar_chart.
     ax.set_ylabel('Median % Difference (Trained Model vs. Baseline)', fontsize=13, fontweight='bold')
     ax.set_title('Comparison of Model Performance Improvement Across Various Corruptions\n' +
                  '(Corruption Training vs. Clean Training on Corrupted Data)',
-                 fontsize=15, fontweight='bold', pad=20)
+                 fontsize=15, fontweight='bold', pad=50)
     ax.set_xticks(x)
     ax.set_xticklabels(metric_labels, fontsize=12)
     ax.axhline(y=0, color='black', linestyle='-', linewidth=1.5, alpha=0.3)
-    ax.legend(loc='upper left', fontsize=10, ncol=2, framealpha=0.95)
+    
+    # Move legend to top in a single row (adjusted position to avoid overlap)
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.08), 
+             fontsize=10, ncol=6, framealpha=0.95, borderaxespad=0,
+             columnspacing=1.0, handlelength=1.5)
+    
+    # Set y-axis range from 0 to 100 with 10-unit increments
+    ax.set_ylim(-20, 100)
+    ax.set_yticks(np.arange(-20, 101, 10))
     ax.grid(axis='y', alpha=0.3, linestyle='--')
     
     # Add footnote for significance
@@ -226,7 +243,7 @@ def create_grouped_bar_chart_with_error_bars(df, output_path='grouped_bar_chart.
              'Error bars represent 95% confidence intervals (10,000 bootstrap iterations)',
              ha='center', fontsize=9, style='italic')
     
-    plt.tight_layout(rect=[0, 0.06, 1, 1])
+    plt.tight_layout(rect=[0, 0.06, 1, 0.96])
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"✅ Saved grouped bar chart: {output_path}")
     plt.close()
@@ -373,8 +390,8 @@ if __name__ == '__main__':
                        default='results/statistical_log_with_ci.txt',
                        help='Path to statistical_log_with_ci.txt file (default: results/statistical_log_with_ci.txt)')
     parser.add_argument('--output_dir', '-o',
-                       default='results/bar_graphs_CI',
-                       help='Output directory for graphs (default: results/bar_graphs_CI)')
+                       default='results/bar_graphs_CI_bright',
+                       help='Output directory for graphs (default: results/bar_graphs_CI_bright)')
     
     args = parser.parse_args()
     
