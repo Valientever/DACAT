@@ -195,27 +195,42 @@ def create_grouped_bar_chart_with_error_bars(df, output_path='grouped_bar_chart.
                      capsize=3,
                      error_kw={'linewidth': 1.5, 'ecolor': 'black', 'alpha': 0.7})
         
-        # Add difference values on top of bars and significance markers
+        # Add difference values and significance markers
         for i, (bar, p_val, diff) in enumerate(zip(bars, p_values, differences)):
-            # Position for difference value (on top of error bar)
             error_top = diff + errors_upper[i]
+            error_bottom = diff - errors_lower[i]
+            sig_marker = get_significance_marker(p_val)
             
-            # Add difference value
-            ax.text(bar.get_x() + bar.get_width()/2, error_top + 1,
+            if diff > 0:
+                # For positive bars, place value on top of error bar
+                value_y = error_top + 1.5
+                value_va = 'bottom'
+            else:
+                # For negative bars, place value below error bar
+                value_y = error_bottom - 1.5
+                value_va = 'top'
+            
+            # Add the difference value
+            ax.text(bar.get_x() + bar.get_width()/2, value_y,
                    f'{diff:.1f}',
-                   ha='center', va='bottom',
-                   fontsize=10, fontweight='bold',
+                   ha='center', va=value_va,
+                   fontsize=9, fontweight='bold',
                    color='black')
             
-            # Add significance marker above the value
-            sig_marker = get_significance_marker(p_val)
+            # Add significance marker above/below the value
             if sig_marker:
-                y_pos = error_top + 4
-                ax.text(bar.get_x() + bar.get_width()/2, y_pos,
+                if diff > 0:
+                    sig_y = error_top + 5
+                    sig_va = 'bottom'
+                else:
+                    sig_y = error_bottom - 5
+                    sig_va = 'top'
+                
+                ax.text(bar.get_x() + bar.get_width()/2, sig_y,
                        sig_marker,
-                       ha='center', va='bottom',
-                       fontsize=11, fontweight='bold',
-                       color='black')
+                       ha='center', va=sig_va,
+                       fontsize=10, fontweight='bold',
+                       color='red')
     
     # Customize plot
     ax.set_xlabel('Metric Type', fontsize=13, fontweight='bold')
@@ -229,12 +244,12 @@ def create_grouped_bar_chart_with_error_bars(df, output_path='grouped_bar_chart.
     
     # Move legend to top in a single row (adjusted position to avoid overlap)
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.08), 
-             fontsize=10, ncol=6, framealpha=0.95, borderaxespad=0,
+             fontsize=12, ncol=6, framealpha=0.95, borderaxespad=0,
              columnspacing=1.0, handlelength=1.5)
     
-    # Set y-axis range from 0 to 100 with 10-unit increments
-    ax.set_ylim(-20, 100)
-    ax.set_yticks(np.arange(-20, 101, 10))
+    # Set y-axis range from -50 to 100 with 10-unit increments for better visibility
+    ax.set_ylim(-50, 100)
+    ax.set_yticks(np.arange(-50, 101, 10))
     ax.grid(axis='y', alpha=0.3, linestyle='--')
     
     # Add footnote for significance
@@ -390,8 +405,8 @@ if __name__ == '__main__':
                        default='results/statistical_log_with_ci.txt',
                        help='Path to statistical_log_with_ci.txt file (default: results/statistical_log_with_ci.txt)')
     parser.add_argument('--output_dir', '-o',
-                       default='results/bar_graphs_CI_bright',
-                       help='Output directory for graphs (default: results/bar_graphs_CI_bright)')
+                       default='results/ext_bar_graphs_CI_spacing',
+                       help='Output directory for graphs (default: results/ext_bar_graphs_CI_spacing)')
     
     args = parser.parse_args()
     
