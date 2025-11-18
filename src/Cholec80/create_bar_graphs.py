@@ -235,8 +235,10 @@ def create_grouped_bar_chart_with_error_bars(df, output_path='grouped_bar_chart.
     # Customize plot
     ax.set_xlabel('Metric Type', fontsize=13, fontweight='bold')
     ax.set_ylabel('Median % Difference (Trained Model vs. Baseline)', fontsize=13, fontweight='bold')
-    ax.set_title('Comparison of Model Performance Improvement Across Various Corruptions\n' +
-                 '(Corruption Training vs. Clean Training on Corrupted Data)',
+    ax.set_title('Comparison of Model Performance  Across Various Corruptions\n' +
+                #  '(Corruption Training vs. Clean Training on Corrupted Data)',
+                # '(Internal_validation)',
+                '(External_validation)',
                  fontsize=15, fontweight='bold', pad=50)
     ax.set_xticks(x)
     ax.set_xticklabels(metric_labels, fontsize=12)

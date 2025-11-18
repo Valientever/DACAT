@@ -111,6 +111,7 @@ def run_tests(df, corruptions, metrics, alpha, logf, bootstrap_iterations=10000,
             clean_vals = wide['clean'].values
             corr_vals  = wide[corr].values
 
+            med_clean = pd.Series(clean_vals).median()
             med_corr = pd.Series(corr_vals).median()
             # Calculate difference as median of paired differences (consistent with bootstrap CI)
             paired_diffs = corr_vals - clean_vals
@@ -128,7 +129,8 @@ def run_tests(df, corruptions, metrics, alpha, logf, bootstrap_iterations=10000,
             rows.append({
                 'metric':          m,
                 'pairs':           len(clean_vals),
-                'median':          med_corr,
+                'median_baseline': med_clean,
+                'median_trained':  med_corr,
                 'train_condition': corr,
                 'eval_condition':  corr,
                 'difference':      diff,
@@ -140,7 +142,7 @@ def run_tests(df, corruptions, metrics, alpha, logf, bootstrap_iterations=10000,
             })
 
         table = pd.DataFrame(rows, columns=[
-            'metric','pairs','median','train_condition','eval_condition',
+            'metric','pairs','median_baseline','median_trained','train_condition','eval_condition',
             'difference','ci_lower','ci_upper','wilcoxon_stat','p-value','significance'
         ])
         logf.write(f"=== Corruption: {corr} ===\n")
