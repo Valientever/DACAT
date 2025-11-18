@@ -172,7 +172,7 @@ def create_comparison_bar_chart(df, output_dir, validation_type='Internal'):
         for i, p_val in enumerate(p_values):
             sig_marker = get_significance_marker(p_val)
             if sig_marker:
-                y_pos = max(baseline_values[i], trained_values[i]) + max_height * 0.05
+                y_pos = max(baseline_values[i], trained_values[i]) + max_height * 0.08
                 ax.text(i, y_pos, sig_marker,
                        ha='center', va='bottom',
                        fontsize=11, fontweight='bold', color='red')
@@ -269,29 +269,30 @@ def create_single_grouped_chart(df, output_dir, validation_type='Internal'):
         for i, p_val in enumerate(p_values):
             sig_marker = get_significance_marker(p_val)
             if sig_marker:
-                y_pos = max(baseline_values[i], trained_values[i]) + max_height * 0.05
+                y_pos = max(baseline_values[i], trained_values[i]) + max_height * 0.08
                 ax.text(i, y_pos, sig_marker,
                        ha='center', va='bottom',
                        fontsize=11, fontweight='bold', color='red')
         
         # Customize plot
         ax.set_title(f'{metric.title()} - {validation_type} Validation',
-                    fontsize=14, fontweight='bold')
+                    fontsize=14, fontweight='bold', pad=20)
         ax.set_xlabel('Corruption Type', fontsize=12, fontweight='bold')
         ax.set_ylabel('Median Performance (%)', fontsize=12, fontweight='bold')
         ax.set_xticks(x)
         ax.set_xticklabels([c.replace('_', ' ').title() for c in available_corruptions],
                           rotation=45, ha='right', fontsize=10)
-        ax.set_ylim(0, min(105, max_height * 1.2))
+        ax.set_ylim(0, min(130, max_height * 1.6))
         ax.grid(axis='y', alpha=0.3, linestyle='--')
-        ax.legend(loc='upper left', fontsize=10)
+        ax.legend(loc='upper left', fontsize=10, frameon=True, fancybox=False, 
+                 bbox_to_anchor=(0.0, 0.95))
         
         # Add footnote
         fig.text(0.5, 0.02,
                  '* p<0.05, ** p<0.01, *** p<0.001 (Wilcoxon signed-rank test)',
                  ha='center', fontsize=9, style='italic')
         
-        plt.tight_layout(rect=[0, 0.04, 1, 1])
+        plt.tight_layout(rect=[0, 0.04, 1, 0.98])
         
         # Save individual file
         output_path = output_dir / f'{metric}_comparison.png'
